@@ -1,20 +1,20 @@
 """
-Configuration file for the Passos Mágicos Datathon project.
-Centralized settings for paths, colors, and parameters.
+Arquivo de configuração do projeto Datathon Passos Mágicos.
+Configurações centralizadas de caminhos, cores e parâmetros.
 """
 
 from pathlib import Path
 
-# Project paths
+# Caminhos do projeto
 PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
-# Data file
+# Arquivo de dados
 DATA_FILE = PROJECT_ROOT / "BASE DE DADOS PEDE 2024 - DATATHON.xlsx"
 
-# Color scheme - Professional dark theme
+# Esquema de cores - tema profissional
 COLORS = {
     'primary': '#2c3e50',      # Dark blue-gray (main color)
     'secondary': '#34495e',    # Lighter dark gray
@@ -26,7 +26,7 @@ COLORS = {
     'text': '#2c3e50'          # Dark text
 }
 
-# Plotting style configuration
+# Configuração de estilo dos gráficos
 PLOT_CONFIG = {
     'figure.facecolor': 'white',
     'axes.facecolor': '#f8f9fa',
@@ -43,12 +43,12 @@ PLOT_CONFIG = {
     'figure.titlesize': 14
 }
 
-# Model parameters
+# Parâmetros de modelagem
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
 CV_FOLDS = 5
 
-# Indicator columns
+# Colunas de indicadores
 INDICATORS = {
     'IAN': 'Adequação do nível',
     'IDA': 'Desempenho acadêmico',

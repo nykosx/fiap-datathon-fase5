@@ -45,7 +45,7 @@
 - [x] **P5 - Risco Psicossocial (IPS)**: 28% alto risco, prediz queda em IDA
 - [x] **P6 - Consistência IAN-IPP**: r=0,681 (forte correlação)
 - [x] **P7 - Drivers de Violência**: IDA (0,514) > IEG (0,477)
-- [x] **P8 - Preditores de Autoestima**: IDA (0,727) > IEG (0,714) > IPV (0,668)
+- [x] **P8 - Multidimensionalidade dos Indicadores**: combinações (IDA + IEG + IPS + IPP) priorizadas por ganho de INDE (uplift)
 - [x] **P9 - Detecção de Risco**: 18% em alto risco (4+ indicadores baixos)
 - [x] **P10 - Efetividade do Programa**: Melhoria consistente entre fases
 - [x] **P11 - Desempenho Acadêmico**: Matemática < Português; Inglês seletivo
@@ -56,39 +56,23 @@
 - [x] `README.md`: Visão geral do projeto (atualizado parcialmente)
 - [x] `docs/methodology.md`: Metodologia e abordagem (parcial em português)
 - [x] `PLANO_PROJETO.md`: Plano detalhado e timeline
-- [x] `docs/TRADUCAO_REFERENCIA.md`: Tabela de tradução para markdown
+- [x] Padronização de linguagem (PT-BR) aplicada à documentação principal e notebooks
 
 ---
 
 ## 🟡 Em Progresso
 
-### Tradução de Documentação (CRÍTICO)
-**Motivo**: Projeto é para pós-graduação brasileira, deve estar em português
+### Padronização de Idioma (PT-BR)
+**Status**: Em andamento, com principal inconsistência já tratada
 
-**Notebooks para Traduzir**:
-1. `01_data_exploration.ipynb` (~12 seções markdown)
-   - [ ] Cabeçalho principal
-   - [ ] 5 seções de análise
-   - [ ] Observações iniciais
-   - [ ] Próximas etapas
+**Concluído**:
+- [x] Comentários e mensagens principais dos notebooks `01`, `02` e `03` padronizados para PT-BR
+- [x] Docstrings e comentários dos módulos `src/config.py` e `src/utils.py` em PT-BR
+- [x] Ajuste de referência inconsistente removendo menção a arquivo inexistente
 
-2. `02_data_cleaning.ipynb` (~8 seções markdown)
-   - [ ] Cabeçalho + objetivos
-   - [ ] Cada fase de limpeza
-   - [ ] Validação de indicadores
-   - [ ] Resumo final
-
-3. `03_analytical_questions.ipynb` (~12 seções markdown)
-   - [ ] Cabeçalho e setup
-   - [ ] Cada uma das 11 perguntas
-   - [ ] Resumo e insights
-
-**Documentação para Traduzir**:
-- [ ] `docs/methodology.md`: Completa (~300 linhas)
-- [ ] `README.md`: Revisão final
-- [ ] Comentários internos em código: Manter em INGLÊS (aceitável para código)
-
-**Timeline**: ~2-3 horas (processo automático, seção por seção)
+**Pendente de refinamento**:
+- [ ] Revisão textual final de `README.md` e `docs/methodology.md` para uniformizar estilo
+- [ ] Revisão de termos técnicos em inglês mantidos por convenção (ex.: feature engineering)
 
 ---
 

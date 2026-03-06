@@ -1,5 +1,5 @@
 """
-Utility functions for data processing and visualization.
+Funções utilitárias para processamento e visualização de dados.
 """
 
 import pandas as pd
@@ -10,23 +10,23 @@ from typing import List, Dict, Tuple, Optional
 from .config import COLORS, PLOT_CONFIG
 
 def setup_plot_style():
-    """Configure matplotlib and seaborn with project style."""
+    """Configura matplotlib e seaborn com o estilo visual do projeto."""
     plt.rcParams.update(PLOT_CONFIG)
     sns.set_palette([COLORS['primary'], COLORS['accent'], COLORS['secondary'], 
                      COLORS['success'], COLORS['warning'], COLORS['neutral']])
 
 def load_data(file_path: str) -> Dict[str, pd.DataFrame]:
     """
-    Load Excel data with multiple sheets (one per year).
+    Carrega dados do Excel com múltiplos sheets (um por ano).
     
-    Parameters:
+    Parâmetros:
     -----------
     file_path : str
-        Path to the Excel file
+        Caminho para o arquivo Excel
         
-    Returns:
+    Retorna:
     --------
-    dict : Dictionary with year as key and DataFrame as value
+    dict : Dicionário com ano como chave e DataFrame como valor
     """
     excel_file = pd.ExcelFile(file_path)
     data = {}
@@ -39,16 +39,16 @@ def load_data(file_path: str) -> Dict[str, pd.DataFrame]:
 
 def get_missing_summary(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Generate summary of missing values.
+    Gera um resumo de valores faltantes.
     
-    Parameters:
+    Parâmetros:
     -----------
     df : DataFrame
-        Input data
+        Dados de entrada
         
-    Returns:
+    Retorna:
     --------
-    DataFrame : Summary with count and percentage of missing values
+    DataFrame : Resumo com contagem e percentual de valores faltantes
     """
     missing = pd.DataFrame({
         'Missing_Count': df.isnull().sum(),
@@ -59,14 +59,14 @@ def get_missing_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 def plot_missing_heatmap(df: pd.DataFrame, title: str = "Missing Values Heatmap"):
     """
-    Visualize missing values pattern in DataFrame.
+    Visualiza o padrão de valores faltantes no DataFrame.
     
-    Parameters:
+    Parâmetros:
     -----------
     df : DataFrame
-        Input data
+        Dados de entrada
     title : str
-        Plot title
+        Título do gráfico
     """
     fig, ax = plt.subplots(figsize=(12, 6))
     
@@ -83,16 +83,16 @@ def plot_missing_heatmap(df: pd.DataFrame, title: str = "Missing Values Heatmap"
 
 def get_basic_stats(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Generate descriptive statistics for numeric columns.
+    Gera estatísticas descritivas para colunas numéricas.
     
-    Parameters:
+    Parâmetros:
     -----------
     df : DataFrame
-        Input data
+        Dados de entrada
         
-    Returns:
+    Retorna:
     --------
-    DataFrame : Basic statistical summary
+    DataFrame : Resumo estatístico básico
     """
     stats = df.describe().T
     stats['dtype'] = df.dtypes
@@ -103,15 +103,15 @@ def get_basic_stats(df: pd.DataFrame) -> pd.DataFrame:
 
 def safe_numeric_convert(series: pd.Series) -> pd.Series:
     """
-    Safely convert a series to numeric, handling errors.
+    Converte uma série para numérico com segurança, tratando erros.
     
-    Parameters:
+    Parâmetros:
     -----------
     series : Series
-        Input series
+        Série de entrada
         
-    Returns:
+    Retorna:
     --------
-    Series : Converted numeric series
+    Series : Série convertida para numérico
     """
     return pd.to_numeric(series, errors='coerce')

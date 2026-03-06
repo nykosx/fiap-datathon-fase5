@@ -166,7 +166,7 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 5. **Padrões IPS**: Sinais de risco psicossocial
 6. **Validação IAN-IPP**: Consistência da avaliação de deficiência
 7. **Drivers de IPV**: Preditores do ponto de virada
-8. **Combinação de Indicadores**: Predição de INDE
+8. **Multidimensionalidade dos Indicadores**: Combinações (IDA + IEG + IPS + IPP) que elevam mais o INDE
 9. **Predição de Risco**: Alerta antecipado
 10. **Efetividade do Programa**: Melhoria entre fases
 11. **Insights Adicionais**: Padrões descobertos nos dados
