@@ -33,6 +33,16 @@ Entregar uma solução completa do Datathon com:
 - Apresentação final (PPT/PDF)
 - Vídeo final
 
+### Atualização de governança documental (mar/2026)
+- Documentação principal sincronizada com estado real do projeto:
+  - `README.md`
+  - `PLANO_PROJETO.md`
+  - `RESUMO_EXECUCAO.md`
+- Documento de continuidade e melhorias criado em:
+  - `docs/AUDITORIA_CONTINUIDADE.md`
+
+Observação: os números oficiais para slides e vídeo devem ser tomados diretamente de `notebooks/03_analytical_questions.ipynb`, `notebooks/04_predictive_modeling.ipynb` e outputs em `outputs/`.
+
 ---
 
 ## 3) Decisões importantes já tomadas (NÃO quebrar)
@@ -83,6 +93,11 @@ Observação: há colunas 100% vazias em alguns anos na base original (artefatos
 1. Publicar app no Streamlit Community Cloud.
 2. Documentar URL final no README.
 
+### Etapa D — Fechamento de submissão
+1. Preparar PPT/PDF com números estritamente iguais aos notebooks/outputs.
+2. Gravar vídeo final (<= 5 min) sem divergência de métricas.
+3. Rodar checklist final em `docs/AUDITORIA_CONTINUIDADE.md`.
+
 ---
 
 ## 7) Padrões de qualidade e estilo para próximos agentes
@@ -98,6 +113,7 @@ Observação: há colunas 100% vazias em alguns anos na base original (artefatos
 2. Ler `AGENT_HANDOFF.md` + `PLANO_PROJETO.md` + `README.md`
 3. Validar estado de `notebooks/03_analytical_questions.ipynb` e `notebooks/04_predictive_modeling.ipynb`
 4. Testar app localmente (`streamlit run app/app.py`)
+5. Revisar `docs/AUDITORIA_CONTINUIDADE.md` para priorização de próximos passos
 
 ---
 

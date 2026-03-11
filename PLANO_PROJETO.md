@@ -1,7 +1,7 @@
 # Plano do Projeto - Datathon Passos Mágicos (Fase 5)
 
 ## Objetivo
-Conduzir a entrega completa do Datathon com análise diagnóstica, modelo preditivo de risco de defasagem, aplicação Streamlit e storytelling executivo.
+Concluir a entrega final do Datathon com consistência documental, storytelling executivo e publicação da solução preditiva.
 
 ## Entregáveis Obrigatórios
 - Link do GitHub com códigos de limpeza e análise
@@ -12,67 +12,67 @@ Conduzir a entrega completa do Datathon com análise diagnóstica, modelo predit
 
 ---
 
-## Status Consolidado
+## Status Consolidado (mar/2026)
 
 ### Concluído
-- Estrutura base do projeto (`src`, `data`, `docs`, `notebooks`)
-- Exploração de dados (`01_data_exploration.ipynb`)
-- Limpeza e unificação (`02_data_cleaning.ipynb`)
-- Análise das 11 perguntas (`03_analytical_questions.ipynb`)
-- Ajuste da Q8 para o novo enunciado: combinações (IDA + IEG + IPS + IPP) que elevam o INDE
+- Estrutura completa do projeto (`src`, `data`, `docs`, `notebooks`, `app`, `models`, `outputs`)
+- Exploração e limpeza de dados (`01_data_exploration.ipynb`, `02_data_cleaning.ipynb`)
+- Respostas às 11 perguntas (`03_analytical_questions.ipynb`)
+- Modelagem preditiva executada (`04_predictive_modeling.ipynb`)
+- Modelo e arquivos de saída gerados:
+	- `models/model_risco.joblib`
+	- `outputs/model_risco_metadata.json`
+	- `outputs/modelagem_leaderboard.csv`
+- App Streamlit MVP funcional (`app/app.py`)
 
 ### Em aberto
-- Notebook de modelagem preditiva (`notebooks/04_predictive_modeling.ipynb`)
-- Modelo treinado (`models/model_risco.joblib`)
-- App Streamlit funcional (`app/app.py`)
 - Deploy público no Streamlit Community Cloud
 - Apresentação final (PPT/PDF)
 - Vídeo final
 
 ---
 
-## Plano de Execução (Sem Datas)
+## Plano de Fechamento (Prioridade Atual)
 
-### Etapa 1 — Consolidação Analítica
-1. Revisar consistência final dos notebooks 01, 02 e 03
-2. Garantir que respostas das perguntas estejam coerentes com o enunciado atual
-3. Confirmar nomenclatura, métricas e textos em português
+### Etapa 1 — Consistência de Entrega (prioridade máxima)
+1. Congelar números oficiais (notebooks + outputs)
+2. Garantir que README, slides e vídeo usem exatamente os mesmos valores
+3. Revisar linguagem final em PT-BR e mensagens executivas
 
-### Etapa 2 — Modelagem Preditiva
-1. Definir variável-alvo de risco com critério explícito
-2. Preparar pipeline de dados (seleção de atributos, tratamento de faltantes, split treino/teste)
-3. Treinar e comparar modelos (baseline e modelo final)
-4. Avaliar com Recall, Precision, F1, ROC-AUC e matriz de confusão
-5. Explicar resultados e salvar artefato do modelo
+### Etapa 2 — Robustez Analítica para Banca
+1. Registrar limitação de IPP ausente em 2022 (Q6, Q8 e modelagem)
+2. Documentar trade-offs da seleção por recall
+3. Opcional recomendado: rodar validação temporal por ano/coorte para robustez
 
-### Etapa 3 — Aplicação Streamlit
-1. Implementar upload de CSV
-2. Exibir previsão de risco e probabilidade por aluno
-3. Mostrar lista de priorização para intervenção
-4. Integrar com modelo salvo e validar fluxo ponta a ponta
+### Etapa 3 — Operacionalização
+1. Validar o app com CSV completo e CSV com colunas faltantes
+2. Publicar no Streamlit Community Cloud
+3. Inserir URL final no README
 
 ### Etapa 4 — Storytelling Executivo
-1. Montar narrativa com contexto, método, achados e recomendações
-2. Incluir resultados da Q8 atualizada e do modelo preditivo
+1. Estruturar narrativa: contexto → achados → risco → ação recomendada
+2. Destacar Q8 (uplift) e modelo vencedor com implicações práticas
 3. Produzir versão final em PPT/PDF
 
-### Etapa 5 — Entrega Final
-1. Publicar app no Streamlit Community Cloud
-2. Gravar vídeo final (até 5 min)
-3. Revisar checklist completo antes da submissão
+### Etapa 5 — Submissão
+1. Gravar vídeo final (até 5 min)
+2. Rodar checklist final de aderência aos requisitos
 
 ---
 
 ## Critérios de Qualidade
 - Reprodutibilidade: notebooks executam do início ao fim
 - Consistência: números idênticos entre notebook, apresentação e vídeo
-- Clareza: explicações objetivas, sem ambiguidade de métricas
-- Ação: recomendações práticas para intervenção em alunos de risco
+- Clareza: explicações objetivas, com limitação metodológica explícita
+- Ação: recomendações práticas para priorização de intervenção
 
 ## Riscos e Mitigações
-- Atraso na modelagem: garantir baseline funcional primeiro
-- Falha no deploy: priorizar app MVP antes de recursos extras
-- Divergência de números: congelar versão de dados e métricas oficiais antes da apresentação final
+- Divergência de números entre artefatos
+	- Mitigação: versão oficial congelada com fonte única em notebooks/outputs
+- Falha no deploy
+	- Mitigação: validar app localmente antes do publish
+- Interpretação de “predição” pela banca
+	- Mitigação: explicitar escopo do alvo e sugerir validação temporal complementar
 
 ## Próxima Ação
-Iniciar `notebooks/04_predictive_modeling.ipynb` com definição do target de risco e baseline de classificação.
+Fechar apresentação final com base nos números oficiais já publicados em `outputs/modelagem_leaderboard.csv` e `outputs/model_risco_metadata.json`.

@@ -1,208 +1,99 @@
 # Datathon Passos Mágicos - Resumo de Execução
 
-**Data**: Janeiro 2025  
-**Status**: Em Progresso (45% Completo)  
-**Próximas Ações**: Tradução de Documentação e Modelagem Preditiva
+**Data de atualização:** 11 de março de 2026  
+**Status geral:** Em fase final de entrega  
+**Foco atual:** Consistência documental, deploy e materiais finais
 
 ---
 
-## 📋 O Que Foi Feito
+## 1) Status Real do Projeto
 
-### ✅ Fase 1: Setup e Configuração
-- [x] Estrutura de diretórios criada (`src/`, `notebooks/`, `data/`, `docs/`, `outputs/`, `app/`)
-- [x] Arquivo de configuração (`src/config.py`) com cores, indicadores, parâmetros
-- [x] Funções utilitárias (`src/utils.py`) para processamento
-- [x] Ambiente Python 3.12.7 confirmado e configurado
-- [x] Todas as dependências disponíveis no ambiente base
+### Concluído
+- Exploração de dados: `notebooks/01_data_exploration.ipynb`
+- Limpeza e unificação: `notebooks/02_data_cleaning.ipynb`
+- Análise diagnóstica (Q1-Q11): `notebooks/03_analytical_questions.ipynb`
+- Modelagem preditiva: `notebooks/04_predictive_modeling.ipynb`
+- Artefatos gerados:
+  - `models/model_risco.joblib`
+  - `outputs/model_risco_metadata.json`
+  - `outputs/modelagem_leaderboard.csv`
+- Aplicação de scoring (MVP): `app/app.py`
 
-### ✅ Fase 2: Exploração de Dados
-- [x] Carregamento de dados de 3 sheets Excel (PEDE2022, PEDE2023, PEDE2024)
-  - 2022: 860 linhas × 50 colunas
-  - 2023: 1.014 linhas × 42 colunas
-  - 2024: 1.156 linhas × 43 colunas
-- [x] Análise de estrutura, tipos de dados, valores faltantes
-- [x] Geração de estatísticas descritivas
-- [x] Documento: `notebooks/01_data_exploration.ipynb` ✅
-
-### ✅ Fase 3: Limpeza e Unificação
-- [x] Padronização de nomes de colunas (32 mapeamentos)
-- [x] Remoção de 100% de colunas vazias (24 exclusões)
-- [x] Tratamento de tipos de dados
-- [x] Remoção de duplicatas (0 encontradas)
-- [x] Unificação de 3 anos em dataset único:
-  - **3.030 registros × 34 colunas**
-  - Valores faltantes: <9% em indicadores principais (aceitável)
-- [x] Arquivos gerados:
-  - `data/dados_unificados.csv` (3.030 linhas)
-  - `data/dados_pede2022.csv`, `dados_pede2023.csv`, `dados_pede2024.csv`
-- [x] Documento: `notebooks/02_data_cleaning.ipynb` ✅
-
-### ✅ Fase 4: Análise Exploratória (11 Perguntas)
-- [x] **P1 - Perfil de Deficiência (IAN)**: 33% moderada/severa, estável entre anos
-- [x] **P2 - Aprendizagem (IDA)**: Média 6,4/10, sem mudanças significativas
-- [x] **P3 - Correlação Engajamento**: r=0,384 (IEG-IDA), moderada
-- [x] **P4 - Auto-Avaliação**: 48% superestimam habilidades (IAA > IDA)
-- [x] **P5 - Risco Psicossocial (IPS)**: 28% alto risco, prediz queda em IDA
-- [x] **P6 - Consistência IAN-IPP**: r=0,681 (forte correlação)
-- [x] **P7 - Drivers de Violência**: IDA (0,514) > IEG (0,477)
-- [x] **P8 - Multidimensionalidade dos Indicadores**: combinações (IDA + IEG + IPS + IPP) priorizadas por ganho de INDE (uplift)
-- [x] **P9 - Detecção de Risco**: 18% em alto risco (4+ indicadores baixos)
-- [x] **P10 - Efetividade do Programa**: Melhoria consistente entre fases
-- [x] **P11 - Desempenho Acadêmico**: Matemática < Português; Inglês seletivo
-- [x] Documento: `notebooks/03_analytical_questions.ipynb` ✅
-- [x] Bug fix em P8: Conversão numérica para colunas INDE
-
-### ✅ Fase 5: Documentação Inicial
-- [x] `README.md`: Visão geral do projeto (atualizado parcialmente)
-- [x] `docs/methodology.md`: Metodologia e abordagem (parcial em português)
-- [x] `PLANO_PROJETO.md`: Plano detalhado e timeline
-- [x] Padronização de linguagem (PT-BR) aplicada à documentação principal e notebooks
+### Em aberto
+- Deploy no Streamlit Community Cloud
+- Apresentação final (PPT/PDF)
+- Vídeo final (até 5 minutos)
 
 ---
 
-## 🟡 Em Progresso
+## 2) Dados e Base Analítica
 
-### Padronização de Idioma (PT-BR)
-**Status**: Em andamento, com principal inconsistência já tratada
-
-**Concluído**:
-- [x] Comentários e mensagens principais dos notebooks `01`, `02` e `03` padronizados para PT-BR
-- [x] Docstrings e comentários dos módulos `src/config.py` e `src/utils.py` em PT-BR
-- [x] Ajuste de referência inconsistente removendo menção a arquivo inexistente
-
-**Pendente de refinamento**:
-- [ ] Revisão textual final de `README.md` e `docs/methodology.md` para uniformizar estilo
-- [ ] Revisão de termos técnicos em inglês mantidos por convenção (ex.: feature engineering)
+- Dataset unificado: `data/dados_unificados.csv`
+- Dimensão da base unificada: **3.030 linhas × 34 colunas**
+- Período analisado: **2022, 2023 e 2024**
+- Observação relevante: `IPP` é estruturalmente ausente em 2022
 
 ---
 
-## ⏳ Próximo Passo Imediato
+## 3) Principais Resultados (Notebook Analítico)
 
-### 1. Verificação de Problemas Identificados
-- ✅ Python 3.12.7 (base) - confirmado correto
-- ✅ Código em markdown - removido de #VSC-4173c7e3
-- ⏳ Linguagem em inglês - **INICIANDO TRADUÇÃO AGORA**
+Resultados extraídos das saídas executadas em `notebooks/03_analytical_questions.ipynb`.
 
-### 2. Ordem de Tradução
-1. **Notebook 01** - Simples, poucos markdown
-2. **Notebook 02** - Médio, ~8 seções
-3. **Notebook 03** - Maior, mas com estrutura clara
-4. **Documentação** - Último, archivos suportadores
-
----
-
-## ⏸️ Pendente (Fase 2)
-
-### Fase 6: Modelagem Preditiva
-- [ ] `notebooks/04_predictive_modeling.ipynb`
-- [ ] Feature engineering (IEG, IPS, IDA_anterior, interações)
-- [ ] Tratamento de desbalanceamento de classes
-- [ ] Comparação de modelos: Logistic Regression, Random Forest, XGBoost, LightGBM
-- [ ] Seleção por F1-score (recall crítico para detecção de risco)
-- [ ] SHAP values para interpretabilidade
-- [ ] Salvar modelo: `models/model_risco.joblib`
-
-### Fase 7: Aplicação Streamlit
-- [ ] `app/app.py`
-- [ ] Upload CSV para predições em tempo real
-- [ ] Dashboard interativo com tema escuro (#2c3e50)
-- [ ] Exportação de resultados em PDF
-- [ ] Deployment em Streamlit Community Cloud
-
-### Fase 8: Apresentação Final
-- [ ] PDF/PPT com storytelling
-- [ ] Vídeo de 5 minutos com resultados
-- [ ] Documentação final completa
+- **Q1 (IAN):** 54,2% moderadamente deficiente; 1,5% severamente deficiente
+- **Q2 (IDA):** médias por ano = 6,09 (2022), 6,66 (2023), 6,35 (2024)
+- **Q3 (IEG-IDA-IPV):** correlações fortes (~0,54 a 0,56)
+- **Q4 (IAA vs IDA):** gap médio = +1,55; 65,3% superestimam autoavaliação
+- **Q5 (IPS):** risco alto = 15,6%; correlação IPS-IDA = 0,022
+- **Q6 (IAN-IPP):** correlação = 0,123 (fraca), com base majoritariamente 2023-2024
+- **Q7 (drivers de IPV):** IEG (0,558) e IDA (0,557) como maiores correlações
+- **Q8 (uplift de INDE):** melhor combinação = `IDA + IEG` (uplift 1,713)
+- **Q9 (regra de risco no notebook):** risco alto = 0,3% (10 estudantes)
+- **Q11:** matemática 6,17; português 6,43; inglês 6,29
 
 ---
 
-## 📊 Estrutura de Dados Confirmada
+## 4) Principais Resultados (Notebook Preditivo)
 
-**Dataset Unificado** (`dados_unificados.csv`):
-- 3.030 registros
-- 34 colunas
-- Indicadores principais:
-  - **IAN**: Avaliação de Necessidades
-  - **IDA**: Desenvolvimento de Aprendizagem
-  - **IEG**: Engajamento
-  - **IAA**: Auto-Avaliação (Aspirações)
-  - **IPS**: Psicossocial
-  - **IPP**: Percepção de Família
-  - **IPV**: Violência
-  - **INDE**: Auto-Estima
+Resultados extraídos de `notebooks/04_predictive_modeling.ipynb` e `outputs/modelagem_leaderboard.csv`.
 
-**Qualidade**:
-- Zero duplicatas
-- <9% valores faltantes em indicadores principais
-- Distribuição estável entre anos
+- Definição do alvo: `target_risco = 1` quando `inde_combined <= Q1`
+- `Q1 inde_combined`: **6,7066**
+- Taxa de risco do alvo: **20,99%**
+- Trilhas de treino:
+  - `trilha1_sem_ipp` (2022-2024)
+  - `trilha2_com_ipp` (2023-2024)
+- Modelo vencedor: **`trilha2_com_ipp / logistic`**
 
----
-
-## 🛠️ Configuração Técnica
-
-**Ambiente**: Python 3.12.7 (base conda)
-**Dependências Instaladas**:
-- pandas 2.2.2, numpy 1.26.4
-- matplotlib 3.9.2, seaborn 0.13.2
-- scikit-learn 1.5.1, xgboost 3.0.2, lightgbm 4.6.0
-- streamlit 1.37.1
-- jupyter, ipython
-
-**Cores Implementadas**:
-- Principal: `#2c3e50` (azul-cinza escuro)
-- Secundária: `#34495e`, Destaque: `#3498db`
-- Aviso: `#e74c3c`, Sucesso: `#27ae60`
+Métricas do vencedor:
+- Recall: **0,9014**
+- Precision: **0,5926**
+- F1: **0,7151**
+- ROC-AUC: **0,9312**
+- PR-AUC: **0,7923**
 
 ---
 
-## ✅ Checklist de Qualidade
+## 5) Alertas Metodológicos Registrados
 
-- [x] Ambiente Python correto (3.12.7)
-- [x] Dados carregados e validados
-- [x] Limpeza executada sem erros
-- [x] 11 perguntas respondidas com rigor estatístico
-- [x] Sem hardcoding (config.py centralizado)
-- [x] Documentação iniciada
-- [ ] **Documentação traduzida para português**
-- [ ] Modelos preditivos treinados
-- [ ] Aplicação Streamlit funcional
-- [ ] Apresentação final pronta
+- Warning no treino da trilha com IPP para colunas sem valores observados em certos recortes (`SimpleImputer`), exigindo controle explícito de features por trilha.
+- A seleção por recall está coerente com o objetivo pedagógico (reduzir falso negativo), mas aumenta falso positivo.
+- Para fortalecer defesa em banca, recomenda-se validação temporal adicional (por ano/coorte).
 
 ---
 
-## 📝 Próximas Ações Prioritárias
+## 6) Próximas Ações Objetivas
 
-**AGORA** (2-3 horas):
-1. Traduzir todos os markdown dos 3 notebooks para português
-2. Traduzir `docs/methodology.md`
-3. Revisar `README.md`
-
-**DEPOIS** (4-6 horas):
-1. Executar modelagem preditiva
-2. Gerar SHAP values
-3. Salvar e validar modelos
-
-**FINAL** (2-3 horas):
-1. Criar aplicação Streamlit
-2. Deploy em Community Cloud
-3. Gerar apresentação e vídeo
+1. Publicar app no Streamlit Community Cloud e registrar URL no README.
+2. Consolidar storytelling final com os números oficiais acima.
+3. Produzir PPT/PDF e vídeo final com os mesmos valores dos notebooks/outputs.
+4. Opcional recomendado: rodar versão temporal do modelo e incluir análise comparativa em anexo.
 
 ---
 
-## 🎯 Métricas de Sucesso Atuais
+## 7) Fonte Única de Verdade
 
-| Métrica | Status |
-|---------|--------|
-| Dados Carregados | ✅ 3.030 registros |
-| Limpeza Completa | ✅ 34 colunas finais |
-| Perguntas Respondidas | ✅ 11/11 |
-| Código Limpo | ✅ Sem erros |
-| Documentação PT | 🟡 Iniciando |
-| Modelos | ⏳ Próximo |
-| Aplicação | ⏳ Próximo |
-
----
-
-**Atualizado**: 27 de Janeiro de 2025  
-**Responsável**: Data Analytics Team  
-**Projeto**: FIAP Datathon - Passos Mágicos
+Para evitar divergência de métricas:
+- `notebooks/03_analytical_questions.ipynb`
+- `notebooks/04_predictive_modeling.ipynb`
+- `outputs/modelagem_leaderboard.csv`
+- `outputs/model_risco_metadata.json`
