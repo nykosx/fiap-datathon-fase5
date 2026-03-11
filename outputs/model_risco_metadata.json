@@ -1,0 +1,72 @@
+{
+  "target_definition": "target_risco = 1 quando inde_combined <= Q1 (quartil inferior)",
+  "q1_inde_combined": 6.706566215985114,
+  "winner_track": "trilha2_com_ipp",
+  "winner_model": "logistic",
+  "winner_metrics": {
+    "track": "trilha2_com_ipp",
+    "model": "logistic",
+    "n_samples": 1628,
+    "n_features": 20,
+    "precision": 0.5925925925925926,
+    "recall": 0.9014084507042254,
+    "f1": 0.7150837988826816,
+    "roc_auc": 0.9311792322562829,
+    "pr_auc": 0.7922572398103779,
+    "tn": 211,
+    "fp": 44,
+    "fn": 7,
+    "tp": 64
+  },
+  "track1": {
+    "features": [
+      "year",
+      "phase",
+      "admission_year",
+      "age",
+      "age_2022",
+      "ian",
+      "ida",
+      "ieg",
+      "iaa",
+      "ips",
+      "ipv",
+      "math",
+      "portuguese",
+      "english",
+      "deficiency",
+      "gender",
+      "school_institution",
+      "achieved_turning_point",
+      "indicated_for_intervention"
+    ],
+    "train_size": 2035,
+    "test_size": 509
+  },
+  "track2": {
+    "features": [
+      "year",
+      "phase",
+      "admission_year",
+      "age",
+      "age_2022",
+      "ian",
+      "ida",
+      "ieg",
+      "iaa",
+      "ips",
+      "ipv",
+      "math",
+      "portuguese",
+      "english",
+      "deficiency",
+      "gender",
+      "school_institution",
+      "achieved_turning_point",
+      "indicated_for_intervention",
+      "ipp"
+    ],
+    "train_size": 1302,
+    "test_size": 326
+  }
+}

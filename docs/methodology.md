@@ -56,11 +56,14 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 **Propósito**: Identificar estudantes em risco de deficiência acadêmica.
 
 **Passos**:
-- Seleção de variáveis baseada em correlação
-- Separação treino/teste (80/20)
-- Comparação de modelos (Regressão Logística, Random Forest, XGBoost, LightGBM)
-- Métricas de avaliação (Precisão, Recall, F1, AUC-ROC)
-- Importância de variáveis (SHAP)
+- Definição de alvo: `target_risco = 1` quando `inde_combined <= Q1`
+- Separação treino/teste estratificada (80/20)
+- Duas trilhas de modelagem:
+	- Trilha 1 (2022-2024): sem IPP
+	- Trilha 2 (2023-2024): com IPP
+- Comparação de modelos (Regressão Logística, Random Forest, Gradient Boosting)
+- Métricas de avaliação (Precisão, Recall, F1, ROC-AUC, PR-AUC)
+- Critério de escolha: maior `recall`, com `roc_auc` como desempate
 
 **Por quê**: Permitir intervenções proativas para alunos em risco.
 
@@ -71,7 +74,7 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 **Entregas**:
 - Aplicação web em Streamlit
-- Deploy em nuvem
+- Deploy em nuvem (pendente)
 - Interface simples e objetiva
 
 **Por quê**: Converter a análise em ferramenta operacional.
@@ -146,10 +149,10 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 ## Checklist de Entregas
 
-- [ ] Notebooks com pipeline completo
-- [ ] Módulos de código (config, utils, modelagem)
-- [ ] Artefatos de modelo treinado
-- [ ] Aplicação Streamlit
+- [x] Notebooks com pipeline completo
+- [x] Módulos de código (config, utils, modelagem)
+- [x] Artefatos de modelo treinado
+- [x] Aplicação Streamlit
 - [ ] Apresentação (PDF/PPT)
 - [ ] Vídeo (até 5 minutos)
 - [ ] Repositório com README
@@ -224,6 +227,20 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 4. **Criar Dataset Unificado**: Mesclar anos com identificador de ano
 5. **Foco em Indicadores Centrais**: IAN, IDA, IEG, IAA, IPS, IPP, IPV, INDE
 6. **Preservar Dados Brutos**: Manter arquivos Excel originais para auditoria
+
+---
+
+## Estado de Implementação (Atual)
+
+- Dataset unificado em uso: `data/dados_unificados.csv` (3030 linhas).
+- Notebook de perguntas analíticas atualizado com:
+	- texto da pergunta no markdown de Q1-Q11,
+	- visualizações individuais logo abaixo das questões principais (Q1, Q2, Q3, Q5, Q6, Q8, Q9).
+- Notebook de modelagem criado e executado: `notebooks/04_predictive_modeling.ipynb`.
+- Artefatos gerados:
+	- `models/model_risco.joblib`
+	- `outputs/model_risco_metadata.json`
+	- `outputs/modelagem_leaderboard.csv`
 
 ---
 

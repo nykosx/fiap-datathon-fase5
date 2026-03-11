@@ -2,6 +2,14 @@
 
 Análise preditiva e diagnóstica do desenvolvimento educacional de crianças e jovens da Associação Passos Mágicos.
 
+## Status Atual
+
+- Analise diagnostica concluida em `notebooks/03_analytical_questions.ipynb` (Q1-Q11).
+- Modelagem preditiva concluida em `notebooks/04_predictive_modeling.ipynb`.
+- Modelo salvo em `models/model_risco.joblib`.
+- Metadados e leaderboard salvos em `outputs/model_risco_metadata.json` e `outputs/modelagem_leaderboard.csv`.
+- App Streamlit criado em `app/app.py` para scoring em lote via CSV.
+
 ## Estrutura do Projeto
 
 ```
@@ -50,17 +58,50 @@ pip install -r requirements.txt
 ### Fase 3: Análise Analítica
 - Resposta às 11 questões de negócio
 - Análise de correlações e tendências
-- Visualizações profissionais
+- Visualizações de apoio posicionadas abaixo de cada questão principal
 
 ### Fase 4: Modelagem Preditiva
-- Seleção de features relevantes
-- Treinamento de modelos de classificação
-- Avaliação de performance
-- Interpretabilidade (SHAP values)
+- Definição de alvo: risco quando `inde_combined <= Q1`
+- Duas trilhas de treino:
+	- Trilha 1: 2022-2024 sem IPP
+	- Trilha 2: 2023-2024 com IPP
+- Modelos comparados: Logistic Regression, Random Forest, Gradient Boosting
+- Critério de seleção: maior `recall`, com `roc_auc` como desempate
 
 ### Fase 5: Deployment
 - Aplicação Streamlit
-- Deploy no Community Cloud
+- Deploy no Community Cloud (pendente)
+
+## Principais Resultados de Modelagem
+
+- Vencedor: `trilha2_com_ipp / logistic`
+- Recall de validacao: `0.901`
+- ROC-AUC de validacao: `0.931`
+
+Os detalhes completos estao em `outputs/modelagem_leaderboard.csv`.
+
+## Como Executar
+
+### 1. Ambiente
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Rodar notebooks
+
+Execute na ordem:
+
+1. `notebooks/01_data_exploration.ipynb`
+2. `notebooks/02_data_cleaning.ipynb`
+3. `notebooks/03_analytical_questions.ipynb`
+4. `notebooks/04_predictive_modeling.ipynb`
+
+### 3. Rodar app de scoring
+
+```bash
+streamlit run app/app.py
+```
 
 ## Indicadores Avaliados
 
