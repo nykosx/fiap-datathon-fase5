@@ -1,4 +1,4 @@
-student_id,phase,class,name,birth_year,age_2022,gender,admission_year,school_institution,inde_2022,iaa,ieg,ips,ida,math,portuguese,english,indicated_for_intervention,achieved_turning_point,ipv,ian,Fase ideal,deficiency,year,age,inde_2024,Pedra 2023,Nome Anonimizado,Ativo/ Inativo,Data de Nasc,Defasagem,ipp,inde_2023,Fase Ideal
+student_id,phase,class,name,birth_year,age_2022,gender,admission_year,school_institution,inde_2022,iaa,ieg,ips,ida,math,portuguese,english,indicated_for_intervention,achieved_turning_point,ipv,ian,Fase ideal,deficiency,year,Pedra 2023,age,inde_2024,Fase Ideal,Nome Anonimizado,Ativo/ Inativo,Data de Nasc,inde_2023,ipp,Defasagem
 RA-1,7,A,Aluno-1,2003,19,Menina,2016,Escola Pública,5.783,8.3,4.1,5.6,4.0,2.7,3.5,6.0,Sim,Não,7.278,5.0,Fase 8 (Universitários),-1,PEDE2022,,,,,,,,,,
 RA-2,7,A,Aluno-2,2005,17,Menina,2017,Rede Decisão,7.055,8.8,5.2,6.3,6.8,6.3,4.5,9.7,Não,Não,6.778,10.0,Fase 7 (3º EM),0,PEDE2022,,,,,,,,,,
 RA-3,7,A,Aluno-3,2005,17,Menina,2016,Rede Decisão,6.591,0.0,7.9,5.6,5.6,5.8,4.0,6.9,Não,Não,7.556,10.0,Fase 7 (3º EM),0,PEDE2022,,,,,,,,,,

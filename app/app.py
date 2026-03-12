@@ -160,10 +160,15 @@ if not MODEL_PATH.exists():
 
 metadata, model = load_artifacts()
 
-winner_track = metadata.get("winner_track", "trilha2_com_ipp") if metadata else "trilha2_com_ipp"
+winner_track = metadata.get("winner_track", "trilha_core_com_ipp") if metadata else "trilha_core_com_ipp"
 expected_features = []
 if metadata:
-    track_key = "track2" if winner_track == "trilha2_com_ipp" else "track1"
+    if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp"}:
+        track_key = "track2"
+    elif winner_track in {"trilha1_sem_ipp", "trilha_core_sem_ipp"}:
+        track_key = "track1"
+    else:
+        track_key = "track2"
     expected_features = metadata.get(track_key, {}).get("features", [])
 
 has_ipp = "ipp" in expected_features
@@ -172,9 +177,11 @@ has_ipp = "ipp" in expected_features
 # ── cabecalho ────────────────────────────────────────────────────────────────
 
 st.title("Sistema de Risco Academico - Passos Magicos")
+m = metadata.get("winner_metrics", {}) if metadata else {}
 st.caption(
     "Identificacao precoce de alunos em risco de defasagem educacional. "
-    "Modelo: regressao logistica | Recall: 0.901 | ROC-AUC: 0.931"
+    f"Modelo: {metadata.get('winner_model', 'logistic') if metadata else 'logistic'} | "
+    f"Recall: {m.get('recall', 0):.3f} | ROC-AUC: {m.get('roc_auc', 0):.3f}"
 )
 st.markdown("---")
 
@@ -197,16 +204,32 @@ with tab_individual:
 
         with col_a:
             st.markdown("**Dados Cadastrais**")
-            year = st.selectbox("Ano de referencia", ["PEDE2022", "PEDE2023", "PEDE2024"])
-            phase = st.slider("Fase atual", min_value=1, max_value=8, value=4)
-            admission_year = st.number_input(
-                "Ano de ingresso", min_value=2010, max_value=2024, value=2020, step=1
+            year = st.selectbox("Ano de referencia", ["PEDE2022", "PEDE2023", "PEDE2024"]) if "year" in expected_features else "PEDE2024"
+            phase = (
+                st.selectbox("Fase atual", ["ALFA", "1", "2", "3", "4", "5", "6", "7", "8"])
+                if "phase" in expected_features
+                else "4"
             )
-            age = st.number_input("Idade atual", min_value=6, max_value=25, value=13, step=1)
-            age_2022 = st.number_input("Idade em 2022", min_value=6, max_value=25, value=11, step=1)
-            gender = st.selectbox("Genero", ["Menina", "Menino"])
-            school_institution = st.selectbox(
-                "Instituicao escolar", ["Escola Publica", "Rede Decisao"]
+            admission_year = (
+                st.number_input("Ano de ingresso", min_value=2010, max_value=2024, value=2020, step=1)
+                if "admission_year" in expected_features
+                else None
+            )
+            age = (
+                st.number_input("Idade atual", min_value=6, max_value=25, value=13, step=1)
+                if "age" in expected_features
+                else None
+            )
+            age_2022 = (
+                st.number_input("Idade em 2022", min_value=6, max_value=25, value=11, step=1)
+                if "age_2022" in expected_features
+                else None
+            )
+            gender = st.selectbox("Genero", ["Feminino", "Masculino"]) if "gender" in expected_features else "Feminino"
+            school_institution = (
+                st.selectbox("Instituicao escolar", ["Escola Publica", "Rede Decisao", "Escola Privada", "Outros"])
+                if "school_institution" in expected_features
+                else "Escola Publica"
             )
 
         with col_b:
@@ -248,25 +271,27 @@ with tab_individual:
             math = st.slider("Matematica", 0.0, 10.0, 5.0, 0.1)
             portuguese = st.slider("Portugues", 0.0, 10.0, 5.0, 0.1)
             english = st.slider("Ingles", 0.0, 10.0, 5.0, 0.1)
-            deficiency = st.selectbox("Possui deficiencia?", ["Nao", "Sim"])
-            achieved_turning_point = st.selectbox("Atingiu ponto de virada?", ["Nao", "Sim"])
-            indicated_for_intervention = st.selectbox(
-                "Indicado para intervencao?", ["Nao", "Sim"]
+            deficiency = st.selectbox("Possui deficiencia?", ["Nao", "Sim"]) if "deficiency" in expected_features else "Nao"
+            achieved_turning_point = (
+                st.selectbox("Atingiu ponto de virada?", ["Nao", "Sim"]) if "achieved_turning_point" in expected_features else "Nao"
+            )
+            indicated_for_intervention = (
+                st.selectbox("Indicado para intervencao?", ["Nao", "Sim"]) if "indicated_for_intervention" in expected_features else "Nao"
             )
 
         submitted = st.form_submit_button("Calcular Risco", use_container_width=True)
 
     if submitted:
         # mapeia valores do formulario para os esperados pelo modelo
-        school_map = {"Escola Publica": "Escola Pública", "Rede Decisao": "Rede Decisão"}
+        school_map = {
+            "Escola Publica": "Escola Pública",
+            "Rede Decisao": "Rede Decisão",
+            "Escola Privada": "Escola Privada",
+            "Outros": "Outros",
+        }
         tp_map = {"Nao": "Não", "Sim": "Sim"}
 
         input_dict = {
-            "year": year,
-            "phase": phase,
-            "admission_year": admission_year,
-            "age": age,
-            "age_2022": age_2022,
             "ian": ian,
             "ida": ida,
             "ieg": ieg,
@@ -276,12 +301,29 @@ with tab_individual:
             "math": math,
             "portuguese": portuguese,
             "english": english,
-            "deficiency": 1.0 if deficiency == "Sim" else 0.0,
-            "gender": "Menina" if gender == "Menina" else "Menino",
-            "school_institution": school_map.get(school_institution, school_institution),
-            "achieved_turning_point": tp_map.get(achieved_turning_point, achieved_turning_point),
-            "indicated_for_intervention": tp_map.get(indicated_for_intervention, indicated_for_intervention),
         }
+
+        if "year" in expected_features:
+            input_dict["year"] = year
+        if "phase" in expected_features:
+            input_dict["phase"] = phase
+        if "admission_year" in expected_features and admission_year is not None:
+            input_dict["admission_year"] = admission_year
+        if "age" in expected_features and age is not None:
+            input_dict["age"] = age
+        if "age_2022" in expected_features and age_2022 is not None:
+            input_dict["age_2022"] = age_2022
+        if "deficiency" in expected_features:
+            input_dict["deficiency"] = 1.0 if deficiency == "Sim" else 0.0
+        if "gender" in expected_features:
+            input_dict["gender"] = gender
+        if "school_institution" in expected_features:
+            input_dict["school_institution"] = school_map.get(school_institution, school_institution)
+        if "achieved_turning_point" in expected_features:
+            input_dict["achieved_turning_point"] = tp_map.get(achieved_turning_point, achieved_turning_point)
+        if "indicated_for_intervention" in expected_features:
+            input_dict["indicated_for_intervention"] = tp_map.get(indicated_for_intervention, indicated_for_intervention)
+
         if has_ipp and ipp is not None:
             input_dict["ipp"] = ipp
 
@@ -305,8 +347,10 @@ with tab_individual:
                 unsafe_allow_html=True,
             )
             st.markdown(" ")
-            st.metric("Fase", phase)
-            st.metric("Ano de referencia", year)
+            if "phase" in expected_features:
+                st.metric("Fase", phase)
+            if "year" in expected_features:
+                st.metric("Ano de referencia", year)
 
         with col_res2:
             st.subheader("Perfil de indicadores")

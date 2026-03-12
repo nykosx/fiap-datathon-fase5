@@ -11,6 +11,7 @@ Análise diagnóstica e preditiva do desenvolvimento educacional de crianças e 
 	- `models/model_risco.joblib`
 	- `outputs/model_risco_metadata.json`
 	- `outputs/modelagem_leaderboard.csv`
+- Base canônica gerada em `data/dados_unificados_canonico.csv`.
 - Aplicação Streamlit MVP pronta para scoring em lote em `app/app.py`.
 
 ### Pendências para submissão
@@ -48,14 +49,14 @@ fiap-datathon-fase5/
 ### Destaques da modelagem
 - Alvo: `target_risco = 1` quando `inde_combined <= Q1`.
 - Duas trilhas:
-	- `trilha1_sem_ipp` (2022-2024)
-	- `trilha2_com_ipp` (2023-2024)
-- Modelo vencedor: `trilha2_com_ipp / logistic`.
+	- `trilha_core_sem_ipp` (2022-2024)
+	- `trilha_core_com_ipp` (2023-2024)
+- Modelo vencedor: `trilha_core_com_ipp / logistic`.
 - Métricas do vencedor:
-	- Recall: `0.901`
-	- Precision: `0.593`
-	- ROC-AUC: `0.931`
-	- PR-AUC: `0.792`
+	- Recall: `0.887`
+	- Precision: `0.589`
+	- ROC-AUC: `0.935`
+	- PR-AUC: `0.813`
 
 ## Como Executar
 

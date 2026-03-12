@@ -1,6 +1,6 @@
 # Datathon Passos Mágicos - Resumo de Execução
 
-**Data de atualização:** 11 de março de 2026  
+**Data de atualização:** 12 de março de 2026  
 **Status geral:** Em fase final de entrega  
 **Foco atual:** Consistência documental, deploy e materiais finais
 
@@ -29,7 +29,8 @@
 ## 2) Dados e Base Analítica
 
 - Dataset unificado: `data/dados_unificados.csv`
-- Dimensão da base unificada: **3.030 linhas × 34 colunas**
+- Dataset canônico: `data/dados_unificados_canonico.csv`
+- Dimensão da base canônica: **3.030 linhas × 35 colunas**
 - Período analisado: **2022, 2023 e 2024**
 - Observação relevante: `IPP` é estruturalmente ausente em 2022
 
@@ -60,22 +61,22 @@ Resultados extraídos de `notebooks/04_predictive_modeling.ipynb` e `outputs/mod
 - `Q1 inde_combined`: **6,7066**
 - Taxa de risco do alvo: **20,99%**
 - Trilhas de treino:
-  - `trilha1_sem_ipp` (2022-2024)
-  - `trilha2_com_ipp` (2023-2024)
-- Modelo vencedor: **`trilha2_com_ipp / logistic`**
+  - `trilha_core_sem_ipp` (2022-2024)
+  - `trilha_core_com_ipp` (2023-2024)
+- Modelo vencedor: **`trilha_core_com_ipp / logistic`**
 
 Métricas do vencedor:
-- Recall: **0,9014**
-- Precision: **0,5926**
-- F1: **0,7151**
-- ROC-AUC: **0,9312**
-- PR-AUC: **0,7923**
+- Recall: **0,8873**
+- Precision: **0,5888**
+- F1: **0,7079**
+- ROC-AUC: **0,9348**
+- PR-AUC: **0,8129**
 
 ---
 
 ## 5) Alertas Metodológicos Registrados
 
-- Warning no treino da trilha com IPP para colunas sem valores observados em certos recortes (`SimpleImputer`), exigindo controle explícito de features por trilha.
+- A trilha final usa conjunto core de features com controle de colunas de baixa utilidade (faltantes extremos e baixa variabilidade), reduzindo instabilidade de imputação.
 - A seleção por recall está coerente com o objetivo pedagógico (reduzir falso negativo), mas aumenta falso positivo.
 - Para fortalecer defesa em banca, recomenda-se validação temporal adicional (por ano/coorte).
 

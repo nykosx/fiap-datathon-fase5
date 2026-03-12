@@ -119,3 +119,21 @@ Observação: há colunas 100% vazias em alguns anos na base original (artefatos
 
 ## 9) Observações finais
 Este arquivo deve ser tratado como contexto operacional oficial para reduzir inconsistência entre sessões e entre agentes no VS Code.
+
+---
+
+## 10) Atualização rápida de continuidade (mar/2026)
+
+### Revisão de limpeza e tratamento de dados
+- Foi realizada revisão geral de consistência entre notebooks, app e artefatos de modelagem.
+- O `app/app.py` foi ajustado para compatibilidade entre nomes legados e atuais de trilhas no metadata do modelo.
+- A documentação executiva e de metodologia foi revisada para alinhamento de nomenclatura.
+
+### Status dos pendentes
+- **Pendências de entrega final ainda abertas**: deploy Streamlit Cloud, apresentação (PPT/PDF) e vídeo final.
+- **Pendência técnica de notebook**: validar e finalizar limpeza de encoding em `notebooks/03_analytical_questions.ipynb` antes da versão final de submissão.
+
+### Orientação para retomada
+1. Priorizar correção/validação final do notebook analítico (`03_analytical_questions.ipynb`).
+2. Reexecutar notebook e confirmar textos/saídas sem artefatos.
+3. Seguir para deploy + materiais finais.
