@@ -197,13 +197,19 @@ with tab_individual:
 
         with col_a:
             st.markdown("**Dados Cadastrais**")
-            year = st.selectbox("Ano de referencia", ["PEDE2022", "PEDE2023", "PEDE2024"])
+            year = st.selectbox(
+                "Ano de referencia",
+                ["PEDE2022", "PEDE2023", "PEDE2024"],
+                help="Captura efeito de coorte/tempo. Ex.: perfis 2022 e 2024 podem ter distribuicoes diferentes.",
+            )
             phase = st.slider("Fase atual", min_value=1, max_value=8, value=4)
             admission_year = st.number_input(
                 "Ano de ingresso", min_value=2010, max_value=2024, value=2020, step=1
             )
             age = st.number_input("Idade atual", min_value=6, max_value=25, value=13, step=1)
-            age_2022 = st.number_input("Idade em 2022", min_value=6, max_value=25, value=11, step=1)
+            ref_year_num = int(year.replace("PEDE", ""))
+            age_2022 = max(0, int(age - (ref_year_num - 2022)))
+            st.caption(f"Idade em 2022 (calculada automaticamente): **{age_2022}**")
             gender = st.selectbox("Genero", ["Menina", "Menino"])
             school_institution = st.selectbox(
                 "Instituicao escolar", ["Escola Publica", "Rede Decisao"]
