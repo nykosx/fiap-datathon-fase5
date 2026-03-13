@@ -1,101 +1,73 @@
-# Passos Mágicos - Datathon Fase 5
+# Passos Magicos - Datathon Fase 5
 
-Análise diagnóstica e preditiva do desenvolvimento educacional de crianças e jovens da Associação Passos Mágicos.
+Analise diagnostica e preditiva do desenvolvimento educacional de criancas e jovens da Associacao Passos Magicos.
 
 ## Status Atual (mar/2026)
 
-### Entregas concluídas
-- Análise diagnóstica das 11 perguntas em `notebooks/03_analytical_questions.ipynb`.
-- Modelagem preditiva em `notebooks/04_predictive_modeling.ipynb`.
+### Entregas concluidas
+- Analise diagnostica das 11 perguntas em notebooks/03_analytical_questions.ipynb.
+- Modelagem preditiva em notebooks/04_predictive_modeling.ipynb.
+- Metodologia preditiva temporal aplicada (ano base t para risco no ano t+1).
 - Artefatos gerados:
-	- `models/model_risco.joblib`
-	- `outputs/model_risco_metadata.json`
-	- `outputs/modelagem_leaderboard.csv`
-- Base canônica gerada em `data/dados_unificados_canonico.csv`.
-- Aplicação Streamlit MVP pronta para scoring em lote em `app/app.py`.
+  - models/model_risco.joblib
+  - outputs/model_risco_metadata.json
+  - outputs/modelagem_leaderboard.csv
+  - outputs/predicoes_modelo_vencedor.csv
+- Base oficial padronizada gerada em data/dados_unificados.csv.
+- Aplicacao Streamlit MVP pronta para scoring em lote em app/app.py.
 
-### Pendências para submissão
+### Pendencias para submissao
 - Deploy no Streamlit Community Cloud.
-- Apresentação final (PPT/PDF).
-- Vídeo final (até 5 minutos).
+- Apresentacao final (PPT/PDF).
+- Video final (ate 5 minutos).
 
 ## Estrutura do Projeto
 
-```
-fiap-datathon-fase5/
-├── app/                            # Aplicação Streamlit
-├── data/                           # Dados processados
-├── docs/                           # Documentação e auditoria
-├── models/                         # Artefatos do modelo
-├── notebooks/                      # Pipeline analítico e preditivo
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_data_cleaning.ipynb
-│   ├── 03_analytical_questions.ipynb
-│   └── 04_predictive_modeling.ipynb
-├── outputs/                        # Metadados e leaderboard
-├── src/                            # Utilitários e configuração
-└── requirements.txt
-```
+- app/: aplicacao Streamlit
+- data/: dados processados e dados brutos em data/raw/
+- docs/: documentacao e auditoria
+- models/: artefatos do modelo
+- notebooks/: pipeline analitico e preditivo
+- outputs/: metadados e leaderboard
+- src/: utilitarios e configuracao
 
-## Principais Resultados (versão oficial)
+## Fontes de Dados
 
-### Destaques da análise diagnóstica
-- Q1 (IAN): 54,2% moderadamente deficiente e 1,5% severamente deficiente.
-- Q3 (IEG-IDA-IPV): correlações fortes (~0,54 a 0,56).
-- Q4 (IAA x IDA): gap médio de +1,55 com 65,3% de superestimação.
-- Q8 (uplift de INDE): melhor combinação `IDA + IEG` (uplift 1,713).
-- Q9 (regra atual de risco): 0,3% em risco alto pelos critérios definidos no notebook.
+Dados brutos (entrada do pipeline):
+- data/raw/BASE DE DADOS PEDE 2024 - DATATHON.xlsx
 
-### Destaques da modelagem
-- Alvo: `target_risco = 1` quando `inde_combined <= Q1`.
-- Duas trilhas:
-	- `trilha_core_sem_ipp` (2022-2024)
-	- `trilha_core_com_ipp` (2023-2024)
-- Modelo vencedor: `trilha_core_com_ipp / logistic`.
-- Métricas do vencedor:
-	- Recall: `0.887`
-	- Precision: `0.589`
-	- ROC-AUC: `0.935`
-	- PR-AUC: `0.813`
+Documentos de referencia da pos-graduacao:
+- docs/fonte_datathon/Dicionario Dados Datathon.pdf
+- docs/fonte_datathon/POSTECH - DTAT - Datathon - Fase 5.pdf
+
+## Base Oficial
+
+Para analise e modelagem, use apenas:
+- data/dados_unificados.csv
+
+Observacao:
+- O campo IPP e estruturalmente ausente em 2022.
 
 ## Como Executar
 
-### 1) Instalar dependências
+1. Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2) Executar notebooks
+2. Executar notebooks na ordem:
+- notebooks/01_data_exploration.ipynb
+- notebooks/02_data_cleaning.ipynb
+- notebooks/03_analytical_questions.ipynb
+- notebooks/04_predictive_modeling.ipynb
 
-Ordem recomendada:
-1. `notebooks/01_data_exploration.ipynb`
-2. `notebooks/02_data_cleaning.ipynb`
-3. `notebooks/03_analytical_questions.ipynb`
-4. `notebooks/04_predictive_modeling.ipynb`
-
-### 3) Executar app de scoring
+3. Executar app
 
 ```bash
 streamlit run app/app.py
 ```
 
-## Notas Metodológicas Importantes
+## Licenca
 
-- O campo `IPP` é estruturalmente ausente em 2022.
-- Q6 e Q8 reportam explicitamente essa limitação.
-- A seleção do modelo prioriza `recall` para reduzir falsos negativos pedagógicos.
-
-## Próximos Passos Recomendados
-
-- Fechar consistência final de números entre notebook, slides e vídeo.
-- Publicar deploy do app e incluir URL neste README.
-- Executar versão temporal de validação para fortalecer robustez preditiva.
-
-## Autores
-
-Pós-Graduação em Data Analytics - FIAP.
-
-## Licença
-
-Projeto acadêmico para avaliação na POSTECH FIAP.
+Projeto academico para avaliacao na POSTECH FIAP.

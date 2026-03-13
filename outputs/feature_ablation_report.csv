@@ -1,0 +1,5 @@
+scenario,n_features,features,precision,recall,f1,roc_auc,pr_auc
+core_pedagogical_only,14,"['phase', 'age', 'ian', 'ida', 'ieg', 'iaa', 'ips', 'ipv', 'math', 'portuguese', 'english', 'gender', 'school_institution', 'ipp']",0.9050505050505051,0.9933481152993349,0.9471458773784355,0.9981654438690573,0.9919155506040173
+drop_age_and_age_2022,15,"['year', 'phase', 'admission_year', 'ian', 'ida', 'ieg', 'iaa', 'ips', 'ipv', 'math', 'portuguese', 'english', 'gender', 'school_institution', 'ipp']",0.9014084507042254,0.9933481152993349,0.9451476793248945,0.9981237167100006,0.9917946123196749
+drop_age_2022,16,"['year', 'phase', 'admission_year', 'age', 'ian', 'ida', 'ieg', 'iaa', 'ips', 'ipv', 'math', 'portuguese', 'english', 'gender', 'school_institution', 'ipp']",0.9032258064516129,0.9933481152993349,0.9461457233368532,0.9980762340807291,0.9916938187690935
+baseline_full,17,"['year', 'phase', 'admission_year', 'age', 'age_2022', 'ian', 'ida', 'ieg', 'iaa', 'ips', 'ipv', 'math', 'portuguese', 'english', 'gender', 'school_institution', 'ipp']",0.9014084507042254,0.9933481152993349,0.9451476793248945,0.9980417012594408,0.9915721682847017

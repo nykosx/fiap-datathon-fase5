@@ -13,6 +13,9 @@ Entregar uma solução completa do Datathon com:
 
 ### Concluído
 - Estrutura do repositório pronta (`src`, `data`, `docs`, `notebooks`, `app`, `models`, `outputs`).
+- Arquivos-fonte reorganizados para pastas estáveis:
+  - base bruta em `data/raw/BASE DE DADOS PEDE 2024 - DATATHON.xlsx`
+  - documentos do enunciado em `docs/fonte_datathon/`
 - Notebook analítico concluído e atualizado: `notebooks/03_analytical_questions.ipynb`.
   - Q8 alinhada ao enunciado novo: combinações que **elevam** INDE (uplift).
   - Q1-Q11 com texto de pergunta em markdown.
@@ -25,13 +28,24 @@ Entregar uma solução completa do Datathon com:
   - `models/model_risco.joblib`
   - `outputs/model_risco_metadata.json`
   - `outputs/modelagem_leaderboard.csv`
+  - `outputs/predicoes_modelo_vencedor.csv`
+  - `outputs/dummy_app_scoring_input.csv`
+  - `outputs/feature_ablation_report.csv`
+  - `outputs/feature_selection_recommendation.json`
 - App Streamlit criado: `app/app.py`.
   - Upload CSV, scoring, classe de risco e priorização.
+  - Compatível com trilha temporal atual e metadata atualizado.
+  - Template CSV para lote disponível no app.
+  - Faixas de recomendação e threshold de scoring em lote ajustados.
 
 ### Pendente crítico
 - Deploy Streamlit Cloud
 - Apresentação final (PPT/PDF)
 - Vídeo final
+
+### Pendente técnico residual
+- Smoke test final em ambiente limpo após `git pull` no novo computador
+- Conferência final de consistência entre notebooks, outputs, slides e roteiro de vídeo
 
 ### Atualização de governança documental (mar/2026)
 - Documentação principal sincronizada com estado real do projeto:
@@ -51,12 +65,15 @@ Observação: os números oficiais para slides e vídeo devem ser tomados direta
 2. **Q6 e Q8 com nota metodológica explícita** sobre limitação do IPP em 2022.
 3. **Q8 no formato uplift de INDE** para combinações (`IDA + IEG + IPS + IPP`).
 4. **Comentários e explicações em PT-BR**; manter nomes de variáveis/siglas para reprodutibilidade.
-5. **Modelo vencedor atual**: `trilha2_com_ipp / logistic`.
+5. **Modelo vencedor atual**: `trilha_temporal_sem_ipp / logistic`.
+6. **App deve permanecer coerente com a metodologia temporal**.
+  - Entradas do scoring representam o ano-base `t`.
+  - O risco previsto representa probabilidade de risco no ano seguinte `t+1`.
 
 ---
 
 ## 4) Contexto de dados (essencial)
-- Base original: `BASE DE DADOS PEDE 2024 - DATATHON.xlsx`
+- Base original: `data/raw/BASE DE DADOS PEDE 2024 - DATATHON.xlsx`
 - Sheets: `PEDE2022`, `PEDE2023`, `PEDE2024`
 - Dataset unificado atual: `data/dados_unificados.csv` (3030 linhas)
 - IPP:
@@ -82,8 +99,9 @@ Observação: há colunas 100% vazias em alguns anos na base original (artefatos
 
 ### Etapa A — Validação funcional do app
 1. Rodar `streamlit run app/app.py`.
-2. Testar com CSVs de entrada com e sem todas as colunas esperadas.
-3. Validar consistência das probabilidades e ranking de priorização.
+2. Testar aba individual e aba em lote.
+3. Validar com `outputs/dummy_app_scoring_input.csv`.
+4. Confirmar consistência das probabilidades e ranking de priorização.
 
 ### Etapa B — Storytelling final
 1. Consolidar resultados dos notebooks em narrativa executiva.
@@ -110,10 +128,13 @@ Observação: há colunas 100% vazias em alguns anos na base original (artefatos
 
 ## 8) Procedimento rápido ao trocar de computador
 1. `git pull`
-2. Ler `AGENT_HANDOFF.md` + `PLANO_PROJETO.md` + `README.md`
-3. Validar estado de `notebooks/03_analytical_questions.ipynb` e `notebooks/04_predictive_modeling.ipynb`
-4. Testar app localmente (`streamlit run app/app.py`)
-5. Revisar `docs/AUDITORIA_CONTINUIDADE.md` para priorização de próximos passos
+2. Instalar dependências com `pip install -r requirements.txt`
+3. Ler `AGENT_HANDOFF.md` + `PLANO_PROJETO.md` + `README.md`
+4. Validar presença dos arquivos-fonte em `data/raw/` e `docs/fonte_datathon/`
+5. Validar artefatos em `models/` e `outputs/`
+6. Testar o app localmente com `streamlit run app/app.py`
+7. Se houver qualquer divergência de artefato, reexecutar os notebooks na ordem 01 → 04
+8. Revisar `docs/AUDITORIA_CONTINUIDADE.md` para priorização de próximos passos
 
 ---
 
@@ -131,9 +152,12 @@ Este arquivo deve ser tratado como contexto operacional oficial para reduzir inc
 
 ### Status dos pendentes
 - **Pendências de entrega final ainda abertas**: deploy Streamlit Cloud, apresentação (PPT/PDF) e vídeo final.
-- **Pendência técnica de notebook**: validar e finalizar limpeza de encoding em `notebooks/03_analytical_questions.ipynb` antes da versão final de submissão.
+- **Pendências técnicas ainda abertas**:
+  - smoke test final do app em ambiente limpo com CSV dummy e CSV real de scoring,
+  - revisão final dos artefatos gerados antes de publicar/deployar,
+  - registrar URL do deploy no `README.md` após publicação.
 
 ### Orientação para retomada
-1. Priorizar correção/validação final do notebook analítico (`03_analytical_questions.ipynb`).
-2. Reexecutar notebook e confirmar textos/saídas sem artefatos.
+1. Executar smoke test final do app (aba individual e lote com CSV template + dummy).
+2. Validar que notebooks e outputs continuam coerentes no novo ambiente.
 3. Seguir para deploy + materiais finais.

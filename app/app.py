@@ -58,95 +58,150 @@ def risk_label(prob: float) -> str:
     return "Baixo Risco"
 
 
-def build_recommendations(prob: float, inputs: dict) -> list:
-    """Recomendacoes contextualizadas ao perfil do aluno."""
+def build_recommendations(prob: float, inputs: dict, q1_threshold: float = 6.63) -> list:
+    """Recomendacoes contextualizadas ao perfil e nivel de risco do aluno."""
     recs = []
 
+    ian  = inputs.get("ian",  10)
+    ida  = inputs.get("ida",  10)
+    ieg  = inputs.get("ieg",  10)
+    iaa  = inputs.get("iaa",  10)
+    ips  = inputs.get("ips",  10)
+    ipv  = inputs.get("ipv",  10)
+    inde = inputs.get("inde_combined")
+    math_ = inputs.get("math",       10)
+    port  = inputs.get("portuguese", 10)
+    eng   = inputs.get("english",    10)
+    turn  = inputs.get("achieved_turning_point",    "Nao")
+    interv = inputs.get("indicated_for_intervention", "Nao")
+
+    # ── Nível de risco global ────────────────────────────────────────────────
     if prob >= 0.7:
         recs.append(
-            "**Atencao prioritaria:** Este aluno apresenta alta probabilidade de defasagem. "
-            "Recomenda-se intervencao imediata pela equipe pedagogica."
+            "🔴 **Atencao prioritaria:** Alta probabilidade de defasagem no proximo ciclo. "
+            "Intervencao imediata pela equipe pedagogica é recomendada."
         )
     elif prob >= 0.5:
         recs.append(
-            "**Acompanhamento proximo:** Probabilidade elevada de defasagem. "
-            "Inclua este aluno nos ciclos de monitoramento mensal."
+            "🟠 **Acompanhamento proximo:** Probabilidade elevada de defasagem. "
+            "Incluir nos ciclos de monitoramento mensal e revisar plano pedagogico."
+        )
+    elif prob >= 0.3:
+        recs.append(
+            "🟡 **Zona de atencao:** Risco moderado. "
+            "Monitorar evolucao nos proximos bimestres e identificar tendencias negativas."
+        )
+    else:
+        recs.append(
+            "🟢 **Perfil estavel:** Baixo risco de defasagem. "
+            "Manter incentivos, acompanhamento regular e reforcar pontos fortes do aluno."
         )
 
-    ian = inputs.get("ian", 10)
-    ida = inputs.get("ida", 10)
-    ieg = inputs.get("ieg", 10)
-    iaa = inputs.get("iaa", 10)
-    ips = inputs.get("ips", 10)
-    ipv = inputs.get("ipv", 10)
+    # ── Contexto INDE vs. limiar de risco ────────────────────────────────────
+    if inde is not None:
+        if inde <= q1_threshold:
+            recs.append(
+                f"**INDE atual ({inde:.2f}) abaixo do limiar de risco ({q1_threshold:.2f}):** "
+                "O indice composto ja sinaliza defasagem. Avaliar sub-indicadores para identificar pontos criticos."
+            )
+        elif inde <= q1_threshold + 0.5:
+            recs.append(
+                f"**INDE atual ({inde:.2f}) proximo do limiar de risco ({q1_threshold:.2f}):** "
+                "Margem estreita — pequena queda pode levar a defasagem no proximo ano."
+            )
 
+    # ── Indicadores Passos Magicos ────────────────────────────────────────────
     if ian < 4:
         recs.append(
-            "**IAN baixo (adequacao de nivel):** O aluno esta significativamente abaixo "
-            "do esperado para sua fase. Considere reforco individualizado ou revisao de nivelamento."
+            "**IAN critico (adequacao de nivel):** Aluno significativamente abaixo da fase esperada. "
+            "Considere reforco individualizado ou revisao de nivelamento."
         )
     elif ian < 6:
         recs.append(
-            "**IAN moderado:** Ha lacunas de conteudo em relacao a fase. "
-            "Recomenda-se atividades de recuperacao paralela."
+            "**IAN em desenvolvimento:** Ha lacunas de conteudo em relacao a fase. "
+            "Atividades de recuperacao paralela sao recomendadas."
         )
 
     if ida < 4:
         recs.append(
-            "**IDA baixo (desenvolvimento academico):** Progressao academica abaixo do esperado. "
-            "Revise frequencia, participacao em aulas e entrega de atividades."
+            "**IDA critico (desenvolvimento academico):** Progressao academica muito abaixo do esperado. "
+            "Revisar frequencia, participacao em aulas e entrega de atividades."
+        )
+    elif ida < 6:
+        recs.append(
+            "**IDA em desenvolvimento:** Progresso aquem do potencial. "
+            "Identificar barreiras especificas de aprendizagem e oferecer suporte direcionado."
         )
 
     if ieg < 4:
         recs.append(
-            "**IEG baixo (engajamento):** Baixo engajamento com o programa. "
-            "Estrategias de motivacao, mentoria e atividades extracurriculares podem ajudar."
+            "**IEG critico (engajamento):** Baixo engajamento com o programa. "
+            "Estrategias de motivacao, mentoria e atividades extracurriculares sao indicadas."
+        )
+    elif ieg < 6:
+        recs.append(
+            "**IEG moderado:** Engajamento parcial. "
+            "Verificar fatores externos que possam estar afetando a participacao."
         )
 
     if iaa < 4:
         recs.append(
-            "**IAA baixo (autoavaliacao):** O aluno demonstra baixa percepcao de suas proprias "
-            "capacidades. Sessoes de coaching e reforco de autoestima sao recomendadas."
+            "**IAA critico (autoavaliacao):** Aluno demonstra baixa percepcao de suas capacidades. "
+            "Sessoes de coaching e tecnicas de reforco de autoestima sao recomendadas."
+        )
+    elif iaa < 6:
+        recs.append(
+            "**IAA moderado:** Aluno tende a subestimar seu desenvolvimento. "
+            "Feedback positivo estruturado e reconhecimento de conquistas podem ajudar."
         )
 
     if ips < 4:
         recs.append(
-            "**IPS baixo (psicossocial):** Indicadores de vulnerabilidade psicossocial. "
+            "**IPS critico (psicossocial):** Vulnerabilidade psicossocial elevada. "
             "Acionar assistente social ou psicologo da equipe Passos Magicos."
+        )
+    elif ips < 6:
+        recs.append(
+            "**IPS moderado:** Alguma pressao psicossocial identificada. "
+            "Verificar contexto familiar, de saude e rede de apoio do aluno."
         )
 
     if ipv < 4:
         recs.append(
-            "**IPV baixo (ponto de virada):** O aluno ainda nao atingiu seu ponto de virada. "
-            "Intensifique o acompanhamento de metas de curto prazo e celebre pequenas conquistas."
+            "**IPV critico (ponto de virada):** Aluno ainda distante do ponto de virada. "
+            "Definir metas de curto prazo concretas e celebrar pequenas conquistas."
+        )
+    elif ipv < 6:
+        recs.append(
+            "**IPV em construcao:** Aluno em caminho para o ponto de virada. "
+            "Reforcar perspectiva de futuro e projetos de vida."
         )
 
-    math = inputs.get("math", 10)
-    port = inputs.get("portuguese", 10)
-    eng = inputs.get("english", 10)
-    low_grades = [s for s, v in [("Matematica", math), ("Portugues", port), ("Ingles", eng)] if v < 4]
+    # ── Notas escolares ───────────────────────────────────────────────────────
+    low_grades = [s for s, v in [("Matematica", math_), ("Portugues", port), ("Ingles", eng)] if v < 4]
+    mid_grades = [s for s, v in [("Matematica", math_), ("Portugues", port), ("Ingles", eng)] if 4 <= v < 6]
     if low_grades:
         recs.append(
             f"**Notas criticas em:** {', '.join(low_grades)}. "
-            "Recomenda-se reforco especifico nessas disciplinas, preferencialmente em grupos reduzidos."
+            "Reforco especifico nestas disciplinas, preferencialmente em grupos reduzidos."
+        )
+    elif mid_grades:
+        recs.append(
+            f"**Notas em desenvolvimento em:** {', '.join(mid_grades)}. "
+            "Acompanhar evolucao e oferecer suporte direcionado."
         )
 
-    if inputs.get("indicated_for_intervention") == "Sim":
+    # ── Flags contextuais ─────────────────────────────────────────────────────
+    if interv == "Sim":
         recs.append(
-            "**Aluno ja indicado para intervencao:** Verificar se o plano de acao esta ativo "
+            "**Ja indicado para intervencao:** Verificar se o plano de acao esta ativo "
             "e documentar evolucao no proximo ciclo de avaliacao."
         )
 
-    if inputs.get("achieved_turning_point") == "Nao":
+    if turn == "Nao":
         recs.append(
             "**Ponto de virada nao alcancado:** Definir um objetivo concreto e mensuravel "
             "junto ao aluno para o proximo trimestre."
-        )
-
-    if not recs:
-        recs.append(
-            "Perfil sem alertas criticos. Manter acompanhamento regular e incentivar "
-            "a continuidade dos bons indicadores."
         )
 
     return recs
@@ -163,13 +218,11 @@ metadata, model = load_artifacts()
 winner_track = metadata.get("winner_track", "trilha_core_com_ipp") if metadata else "trilha_core_com_ipp"
 expected_features = []
 if metadata:
-    if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp"}:
+    if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp", "trilha_temporal_com_ipp"}:
         track_key = "track2"
-    elif winner_track in {"trilha1_sem_ipp", "trilha_core_sem_ipp"}:
+    else:  # trilha1_sem_ipp, trilha_core_sem_ipp, trilha_temporal_sem_ipp, fallback
         track_key = "track1"
-    else:
-        track_key = "track2"
-    expected_features = metadata.get(track_key, {}).get("features", [])
+    expected_features = (metadata.get(track_key) or {}).get("features", [])
 
 has_ipp = "ipp" in expected_features
 
@@ -194,9 +247,13 @@ tab_individual, tab_massa = st.tabs(["Aluno Individual", "Predicao em Massa (CSV
 
 with tab_individual:
     st.subheader("Avaliacao de um aluno")
-    st.markdown(
-        "Preencha os indicadores do aluno para obter a probabilidade de risco de defasagem "
-        "e recomendacoes de intervencao personalizadas."
+
+    q1_thr = metadata.get("q1_train_inde_next_year", 6.63) if metadata else 6.63
+    st.info(
+        f"ℹ️ O modelo prevê o risco de **defasagem no próximo ano** com base nos indicadores atuais. "
+        f"Definição de risco: INDE no próximo ciclo ≤ **{q1_thr:.2f}** (1º quartil do conjunto de treino). "
+        f"Modelo: **{metadata.get('winner_model', 'logistic') if metadata else 'logistic'}** — "
+        f"Recall: **{m.get('recall', 0):.1%}** | ROC-AUC: **{m.get('roc_auc', 0):.3f}**"
     )
 
     with st.form("form_aluno"):
@@ -205,8 +262,13 @@ with tab_individual:
         with col_a:
             st.markdown("**Dados Cadastrais**")
             year = st.selectbox("Ano de referencia", ["PEDE2022", "PEDE2023", "PEDE2024"]) if "year" in expected_features else "PEDE2024"
+            phase_options = [
+                "ALFA",
+                "FASE 1", "FASE 2", "FASE 3", "FASE 4", "FASE 5", "FASE 6", "FASE 7", "FASE 8",
+                "1", "2", "3", "4", "5", "6", "7", "8",
+            ]
             phase = (
-                st.selectbox("Fase atual", ["ALFA", "1", "2", "3", "4", "5", "6", "7", "8"])
+                st.selectbox("Fase atual", phase_options)
                 if "phase" in expected_features
                 else "4"
             )
@@ -231,6 +293,17 @@ with tab_individual:
                 if "school_institution" in expected_features
                 else "Escola Publica"
             )
+            st.markdown("**Contexto Pedagogico**")
+            # Sempre visíveis — usados nas recomendações (não entram no modelo)
+            achieved_turning_point = st.selectbox(
+                "Atingiu ponto de virada?", ["Nao", "Sim"],
+                help="Indica se o aluno ja demonstrou uma mudanca significativa de perspectiva."
+            )
+            indicated_for_intervention = st.selectbox(
+                "Ja indicado para intervencao?", ["Nao", "Sim"],
+                help="Indica se o aluno ja faz parte de algum plano de intervencao ativo."
+            )
+            deficiency = st.selectbox("Possui deficiencia?", ["Nao", "Sim"]) if "deficiency" in expected_features else "Nao"
 
         with col_b:
             st.markdown("**Indicadores Passos Magicos**")
@@ -252,7 +325,7 @@ with tab_individual:
             )
             ips = st.slider(
                 "IPS - Psicossocial", 0.0, 10.0, 5.0, 0.1,
-                help="Indicador de bem-estar psicossocial e condicao socioeconomica."
+                help="Indicador de bem-estar psicossocial e condicao socioeconomica. Valores baixos indicam maior vulnerabilidade."
             )
             ipv = st.slider(
                 "IPV - Ponto de Virada", 0.0, 10.0, 5.0, 0.1,
@@ -267,17 +340,20 @@ with tab_individual:
                 ipp = None
 
         with col_c:
-            st.markdown("**Notas e Situacao**")
+            st.markdown("**Desempenho Escolar**")
             math = st.slider("Matematica", 0.0, 10.0, 5.0, 0.1)
             portuguese = st.slider("Portugues", 0.0, 10.0, 5.0, 0.1)
             english = st.slider("Ingles", 0.0, 10.0, 5.0, 0.1)
-            deficiency = st.selectbox("Possui deficiencia?", ["Nao", "Sim"]) if "deficiency" in expected_features else "Nao"
-            achieved_turning_point = (
-                st.selectbox("Atingiu ponto de virada?", ["Nao", "Sim"]) if "achieved_turning_point" in expected_features else "Nao"
-            )
-            indicated_for_intervention = (
-                st.selectbox("Indicado para intervencao?", ["Nao", "Sim"]) if "indicated_for_intervention" in expected_features else "Nao"
-            )
+            if "inde_combined" in expected_features:
+                inde_combined = st.slider(
+                    "INDE - Indice de Desenv. Educacional", 0.0, 10.0, 7.0, 0.01,
+                    help=(
+                        f"Indice geral de desenvolvimento educacional do ultimo ciclo disponivel. "
+                        f"Limiar de risco de referencia: {q1_thr:.2f}"
+                    ),
+                )
+            else:
+                inde_combined = None
 
         submitted = st.form_submit_button("Calcular Risco", use_container_width=True)
 
@@ -324,6 +400,8 @@ with tab_individual:
         if "indicated_for_intervention" in expected_features:
             input_dict["indicated_for_intervention"] = tp_map.get(indicated_for_intervention, indicated_for_intervention)
 
+        if "inde_combined" in expected_features and inde_combined is not None:
+            input_dict["inde_combined"] = inde_combined
         if has_ipp and ipp is not None:
             input_dict["ipp"] = ipp
 
@@ -342,7 +420,7 @@ with tab_individual:
                 f"<div style='background:{color};padding:24px;border-radius:12px;text-align:center;'>"
                 f"<p style='color:white;font-size:1.3rem;margin:0;font-weight:bold;'>{label}</p>"
                 f"<p style='color:white;font-size:2.4rem;margin:4px 0;font-weight:bold;'>{prob:.1%}</p>"
-                f"<p style='color:rgba(255,255,255,0.85);margin:0;font-size:0.9rem;'>probabilidade de risco</p>"
+                f"<p style='color:rgba(255,255,255,0.85);margin:0;font-size:0.9rem;'>probabilidade de risco no proximo ciclo</p>"
                 f"</div>",
                 unsafe_allow_html=True,
             )
@@ -351,6 +429,14 @@ with tab_individual:
                 st.metric("Fase", phase)
             if "year" in expected_features:
                 st.metric("Ano de referencia", year)
+            if inde_combined is not None:
+                delta_inde = inde_combined - q1_thr
+                st.metric(
+                    "INDE atual vs. limiar de risco",
+                    f"{inde_combined:.2f}",
+                    delta=f"{delta_inde:+.2f} vs. {q1_thr:.2f}",
+                    delta_color="normal",
+                )
 
         with col_res2:
             st.subheader("Perfil de indicadores")
@@ -391,10 +477,11 @@ with tab_individual:
         form_inputs = {
             "ian": ian, "ida": ida, "ieg": ieg, "iaa": iaa, "ips": ips, "ipv": ipv,
             "math": math, "portuguese": portuguese, "english": english,
+            "inde_combined": inde_combined,
             "indicated_for_intervention": indicated_for_intervention,
             "achieved_turning_point": achieved_turning_point,
         }
-        for rec in build_recommendations(prob, form_inputs):
+        for rec in build_recommendations(prob, form_inputs, q1_threshold=q1_thr):
             st.markdown(f"- {rec}")
 
         st.markdown("---")
@@ -424,6 +511,24 @@ with tab_massa:
             f"**Recall:** {m_info.get('recall', 0):.3f} | "
             f"**ROC-AUC:** {m_info.get('roc_auc', 0):.3f}"
         )
+        if expected_features:
+            template_csv = pd.DataFrame(columns=expected_features).to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="Download template CSV (colunas vazias)",
+                data=template_csv,
+                file_name="template_scoring.csv",
+                mime="text/csv",
+            )
+
+    score_threshold = st.slider(
+        "Limiar de classificacao de risco",
+        min_value=0.10, max_value=0.90, value=0.50, step=0.05,
+        help=(
+            "Probabilidade acima da qual o aluno é classificado como 'em risco'. "
+            "Reduza para aumentar a sensibilidade (mais alunos identificados, mais falsos positivos). "
+            "O valor padrão 0.50 é o ponto de equilíbrio do modelo."
+        ),
+    )
 
     uploaded = st.file_uploader("Envie um CSV com dados de alunos", type=["csv"])
 
@@ -434,7 +539,7 @@ with tab_massa:
 
         scored_base = ensure_cols(input_df, expected_features)[expected_features].copy()
         probs = model.predict_proba(scored_base)[:, 1]
-        preds = (probs >= 0.5).astype(int)
+        preds = (probs >= score_threshold).astype(int)
 
         result = input_df.copy()
         result["prob_risco"] = probs

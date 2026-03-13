@@ -17,19 +17,19 @@
 ### Pontos críticos
 - Havia divergência documental entre status descrito e status real dos notebooks.
 - Pendências de entrega final (deploy, apresentação e vídeo).
-- Riscos metodológicos para defesa em banca:
-  - ausência de validação temporal explícita,
-  - possível proximidade conceitual entre features e alvo,
-  - colunas sem observações em uma trilha gerando warning de imputação.
+- Pontos metodológicos que exigiram ajuste para defesa em banca:
+  - validação temporal explícita,
+  - separação entre informação do ano base (t) e alvo no ano seguinte (t+1),
+  - tratamento de trilha com IPP quando não há amostra temporal suficiente.
 
 ---
 
 ## 2) Críticas Técnicas (Construtivas)
 
 ### 2.1 Modelagem
-- A definição do alvo por quartil inferior de `inde_combined` é útil para priorização, mas pode ser vista como classificação de estado atual, não necessariamente predição antecipada em cenário operacional.
-- O split aleatório estratificado é válido para baseline, mas não testa bem robustez temporal entre anos/coortes.
-- Warnings de features sem observação indicam necessidade de validação de schema por trilha antes do treino.
+- O alvo foi atualizado para estrutura temporal (`target_risco_next`), reduzindo risco de leakage conceitual.
+- O split foi atualizado para estratégia temporal (treino em ano base anterior, teste em ano base posterior).
+- A trilha com IPP passou a depender de disponibilidade temporal mínima, evitando avaliação artificial por ausência de dados.
 
 ### 2.2 Analytics e Storytelling
 - As análises estão ricas em leitura descritiva e correlação, porém a banca pode pedir reforço de inferência/causalidade e limites de interpretação.
@@ -48,7 +48,7 @@
 3. Publicar deploy do app e registrar URL final no README.
 
 ### Prioridade B (alta / médio esforço)
-1. Implementar validação temporal (ex.: treino em anos anteriores, teste em ano posterior).
+1. Validar periodicamente a robustez da estratégia temporal (ex.: backtesting com janelas móveis por ano-base).
 2. Revisar features por trilha para remover campos sem observação útil.
 3. Registrar limites metodológicos de forma explícita no storytelling.
 
@@ -78,7 +78,7 @@
 - [ ] Deploy público do app
 - [ ] Storytelling final (PPT/PDF)
 - [ ] Vídeo final
-- [ ] Validação temporal complementar (recomendado)
+- [x] Validação temporal aplicada no notebook de modelagem
 
 ---
 

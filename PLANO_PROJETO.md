@@ -42,7 +42,7 @@ Concluir a entrega final do Datathon com consistência documental, storytelling 
 ### Etapa 2 — Robustez Analítica para Banca
 1. Registrar limitação de IPP ausente em 2022 (Q6, Q8 e modelagem)
 2. Documentar trade-offs da seleção por recall
-3. Opcional recomendado: rodar validação temporal por ano/coorte para robustez
+3. Consolidar no storytelling a validação temporal já aplicada (treino 2022->2023 e teste 2023->2024)
 
 ### Etapa 3 — Operacionalização
 1. Validar o app com CSV completo e CSV com colunas faltantes
@@ -72,7 +72,7 @@ Concluir a entrega final do Datathon com consistência documental, storytelling 
 - Falha no deploy
 	- Mitigação: validar app localmente antes do publish
 - Interpretação de “predição” pela banca
-	- Mitigação: explicitar escopo do alvo e sugerir validação temporal complementar
+	- Mitigação: explicitar que o alvo é temporal (t+1) e que o split de avaliação também é temporal
 
 ## Próxima Ação
 Fechar apresentação final com base nos números oficiais já publicados em `outputs/modelagem_leaderboard.csv` e `outputs/model_risco_metadata.json`.

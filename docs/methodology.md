@@ -56,14 +56,20 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 **Propósito**: Identificar estudantes em risco de deficiência acadêmica.
 
 **Passos**:
-- Definição de alvo: `target_risco = 1` quando `inde_combined <= Q1`
-- Separação treino/teste estratificada (80/20)
-- Duas trilhas de modelagem:
-	- Trilha 1 (2022-2024): sem IPP
-	- Trilha 2 (2023-2024): com IPP
+- Definição temporal de alvo:
+	- construir `inde_combined` no ano base (t),
+	- construir `inde_next_year` por aluno (t+1),
+	- definir `target_risco_next = 1` quando `inde_next_year <= Q1` (Q1 calculado no treino)
+- Separação treino/teste temporal:
+	- treino: base 2022 (prevendo 2023)
+	- teste: base 2023 (prevendo 2024)
+- Duas trilhas de modelagem no desenho temporal:
+	- Trilha 1: sem IPP (maior cobertura)
+	- Trilha 2: com IPP (maior riqueza psicopedagógica, quando houver amostra suficiente)
 - Comparação de modelos (Regressão Logística, Random Forest, Gradient Boosting)
-- Métricas de avaliação (Precisão, Recall, F1, ROC-AUC, PR-AUC)
+- Métricas de avaliação (Precisão, Recall, F1, ROC-AUC, PR-AUC, calibração)
 - Critério de escolha: maior `recall`, com `roc_auc` como desempate
+- Plots de avaliação: matriz de confusão, ROC, Precision-Recall, calibração e análise de threshold
 
 **Por quê**: Permitir intervenções proativas para alunos em risco.
 
@@ -237,6 +243,7 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 	- texto da pergunta no markdown de Q1-Q11,
 	- visualizações individuais logo abaixo das questões principais (Q1, Q2, Q3, Q5, Q6, Q8, Q9).
 - Notebook de modelagem criado e executado: `notebooks/04_predictive_modeling.ipynb`.
+- Metodologia temporal implementada no notebook de modelagem (t -> t+1).
 - Artefatos gerados:
 	- `models/model_risco.joblib`
 	- `outputs/model_risco_metadata.json`

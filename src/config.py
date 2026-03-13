@@ -11,8 +11,8 @@ DATA_DIR = PROJECT_ROOT / "data"
 MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 
-# Arquivo de dados
-DATA_FILE = PROJECT_ROOT / "BASE DE DADOS PEDE 2024 - DATATHON.xlsx"
+# Arquivo de dados bruto
+DATA_FILE = PROJECT_ROOT / "data" / "raw" / "BASE DE DADOS PEDE 2024 - DATATHON.xlsx"
 
 # Esquema de cores - tema profissional
 COLORS = {
