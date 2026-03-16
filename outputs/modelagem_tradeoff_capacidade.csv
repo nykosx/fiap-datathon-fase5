@@ -1,0 +1,4 @@
+capacidade_max_alertas,ponto_de_corte_sugerido,alertas_emitidos,cobertura_risco_detectado,taxa_de_acerto_dos_alertas,falsos_alertas,riscos_nao_detectados
+80,0.7,74,0.3032258064516129,0.6351351351351351,27,108
+120,0.6,106,0.41935483870967744,0.6132075471698113,41,90
+160,0.5,151,0.5290322580645161,0.543046357615894,69,73

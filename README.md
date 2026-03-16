@@ -2,43 +2,30 @@
 
 Analise diagnostica e preditiva do desenvolvimento educacional de criancas e jovens da Associacao Passos Magicos.
 
-## Status Atual (mar/2026)
+## Visao Geral
 
-### Entregas concluidas
-- Analise diagnostica das 11 perguntas em notebooks/03_analytical_questions.ipynb.
-- Modelagem preditiva em notebooks/04_predictive_modeling.ipynb.
-- Metodologia preditiva temporal aplicada (ano base t para risco no ano t+1).
-- Artefatos gerados:
-  - models/model_risco.joblib
-  - outputs/model_risco_metadata.json
-  - outputs/modelagem_leaderboard.csv
-  - outputs/predicoes_modelo_vencedor.csv
-- Base oficial padronizada gerada em data/dados_unificados.csv.
-- Aplicacao Streamlit MVP pronta para scoring em lote em app/app.py.
+O projeto entrega:
+- analise diagnostica das 11 perguntas de negocio;
+- modelo preditivo temporal de risco de defasagem no ano seguinte;
+- aplicacao Streamlit para avaliacao individual e scoring em lote;
+- base documental consolidada para execucao, metodologia e storytelling.
 
-### Pendencias para submissao
-- Deploy no Streamlit Community Cloud.
-- Apresentacao final (PPT/PDF).
-- Video final (ate 5 minutos).
+## Documentos Oficiais
+
+Use estes arquivos como referencia principal:
+- docs/PROJECT_GUIDE.md: status, continuidade, entregaveis e fonte de verdade operacional;
+- docs/methodology.md: desenho metodologico e criterios tecnicos;
+- docs/STORYTELLING_BASE.md: narrativa completa para PPT/PDF e video.
 
 ## Estrutura do Projeto
 
 - app/: aplicacao Streamlit
 - data/: dados processados e dados brutos em data/raw/
-- docs/: documentacao e auditoria
+- docs/: documentacao consolidada
 - models/: artefatos do modelo
 - notebooks/: pipeline analitico e preditivo
-- outputs/: metadados e leaderboard
+- outputs/: metricas, previsoes e tabelas de apoio
 - src/: utilitarios e configuracao
-
-## Fontes de Dados
-
-Dados brutos (entrada do pipeline):
-- data/raw/BASE DE DADOS PEDE 2024 - DATATHON.xlsx
-
-Documentos de referencia da pos-graduacao:
-- docs/fonte_datathon/Dicionario Dados Datathon.pdf
-- docs/fonte_datathon/POSTECH - DTAT - Datathon - Fase 5.pdf
 
 ## Base Oficial
 
@@ -47,6 +34,15 @@ Para analise e modelagem, use apenas:
 
 Observacao:
 - O campo IPP e estruturalmente ausente em 2022.
+
+## Artefatos Oficiais
+
+Arquivos oficiais para leitura de resultados e materiais finais:
+- outputs/modelagem_leaderboard.csv
+- outputs/model_risco_metadata.json
+- outputs/predicoes_modelo_vencedor.csv
+- outputs/modelagem_tradeoff_thresholds.csv
+- outputs/modelagem_tradeoff_capacidade.csv
 
 ## Como Executar
 

@@ -16,6 +16,7 @@ st.set_page_config(
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_PATH = PROJECT_ROOT / "models" / "model_risco.joblib"
 METADATA_PATH = PROJECT_ROOT / "outputs" / "model_risco_metadata.json"
+OFFICIAL_DATA_PATH = PROJECT_ROOT / "data" / "dados_unificados.csv"
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -234,7 +235,8 @@ m = metadata.get("winner_metrics", {}) if metadata else {}
 st.caption(
     "Identificacao precoce de alunos em risco de defasagem educacional. "
     f"Modelo: {metadata.get('winner_model', 'logistic') if metadata else 'logistic'} | "
-    f"Recall: {m.get('recall', 0):.3f} | ROC-AUC: {m.get('roc_auc', 0):.3f}"
+    f"Cobertura de risco (deteccao): {m.get('recall', 0):.1%} | "
+    f"Qualidade geral de separacao: {m.get('roc_auc', 0):.3f}"
 )
 st.markdown("---")
 
@@ -250,11 +252,20 @@ with tab_individual:
 
     q1_thr = metadata.get("q1_train_inde_next_year", 6.63) if metadata else 6.63
     st.info(
-        f"ℹ️ O modelo prevê o risco de **defasagem no próximo ano** com base nos indicadores atuais. "
-        f"Definição de risco: INDE no próximo ciclo ≤ **{q1_thr:.2f}** (1º quartil do conjunto de treino). "
+        f"ℹ️ O modelo estima o risco de **defasagem no próximo ano** com base nos indicadores atuais. "
+        f"Definicao de risco: INDE no proximo ciclo ≤ **{q1_thr:.2f}** (25% piores resultados no treino). "
         f"Modelo: **{metadata.get('winner_model', 'logistic') if metadata else 'logistic'}** — "
-        f"Recall: **{m.get('recall', 0):.1%}** | ROC-AUC: **{m.get('roc_auc', 0):.3f}**"
+        f"Cobertura de risco (deteccao): **{m.get('recall', 0):.1%}** | "
+        f"Taxa de acerto dos alertas: **{m.get('precision', 0):.1%}**"
     )
+
+    with st.expander("Como interpretar este resultado", expanded=False):
+        st.markdown(
+            "- **Cobertura de risco (deteccao)**: de cada 100 alunos que realmente entrariam em risco, quantos o modelo consegue sinalizar.\n"
+            "- **Taxa de acerto dos alertas**: de cada 100 alunos sinalizados pelo modelo, quantos de fato entram em risco.\n"
+            "- **Ponto de corte de alerta**: valor de probabilidade a partir do qual o aluno vira 'alerta'. "
+            "Reduzir esse valor aumenta cobertura, mas tambem aumenta falsos alarmes."
+        )
 
     with st.form("form_aluno"):
         col_a, col_b, col_c = st.columns(3)
@@ -502,6 +513,13 @@ with tab_massa:
         "e ranking de priorizacao em uma unica operacao."
     )
 
+    with st.expander("Guia rapido para equipe pedagogica", expanded=False):
+        st.markdown(
+            "- **Cobertura de risco (deteccao)**: quantos alunos em risco real sao capturados.\n"
+            "- **Taxa de acerto dos alertas**: quantos alertas realmente viram risco.\n"
+            "- **Ponto de corte de alerta**: regula o volume de alunos sinalizados para atendimento."
+        )
+
     with st.expander("Colunas esperadas no CSV", expanded=False):
         st.code(", ".join(expected_features), language="text")
         m_info = metadata.get("winner_metrics", {}) if metadata else {}
@@ -521,19 +539,41 @@ with tab_massa:
             )
 
     score_threshold = st.slider(
-        "Limiar de classificacao de risco",
+        "Ponto de corte de alerta",
         min_value=0.10, max_value=0.90, value=0.50, step=0.05,
         help=(
-            "Probabilidade acima da qual o aluno é classificado como 'em risco'. "
-            "Reduza para aumentar a sensibilidade (mais alunos identificados, mais falsos positivos). "
-            "O valor padrão 0.50 é o ponto de equilíbrio do modelo."
+            "A partir deste valor, o aluno vira alerta de risco. "
+            "Diminuir o ponto de corte aumenta a cobertura de alunos em risco, "
+            "mas tambem aumenta alertas falsos."
         ),
     )
 
     uploaded = st.file_uploader("Envie um CSV com dados de alunos", type=["csv"])
 
+    use_official_2024 = st.checkbox(
+        "Usar base oficial 2024 (dados_unificados.csv) quando nao houver upload",
+        value=False,
+        help="Gera ranking prospectivo da carteira atual (2024) para apoiar priorizacao no proximo ciclo."
+    )
+
+    input_df = None
+    input_label = None
     if uploaded is not None:
         input_df = pd.read_csv(uploaded)
+        input_label = "CSV enviado"
+    elif use_official_2024:
+        if not OFFICIAL_DATA_PATH.exists():
+            st.error(f"Base oficial nao encontrada em: {OFFICIAL_DATA_PATH}")
+        else:
+            base_df = pd.read_csv(OFFICIAL_DATA_PATH)
+            if "year" in base_df.columns:
+                input_df = base_df[base_df["year"].astype(str).str.contains("2024", na=False)].copy()
+            else:
+                input_df = base_df.copy()
+            input_label = "Base oficial 2024"
+
+    if input_df is not None and not input_df.empty:
+        st.caption(f"Fonte utilizada: {input_label}")
         st.subheader("Amostra de entrada")
         st.dataframe(input_df.head(10), use_container_width=True)
 
@@ -554,7 +594,7 @@ with tab_massa:
 
         col_m1, col_m2, col_m3, col_m4 = st.columns(4)
         col_m1.metric("Total de alunos", len(result))
-        col_m2.metric("Em risco (>=50%)", int((probs >= 0.5).sum()))
+        col_m2.metric(f"Em risco (>={score_threshold:.2f})", int((probs >= score_threshold).sum()))
         col_m3.metric("Prioridade critica", int((result["prioridade"] == "critica").sum()))
         col_m4.metric("Prob. media", f"{probs.mean():.1%}")
 
@@ -568,6 +608,8 @@ with tab_massa:
             file_name="scoring_risco.csv",
             mime="text/csv",
         )
+    elif use_official_2024 and input_df is not None and input_df.empty:
+        st.warning("Nenhuma linha de 2024 foi encontrada na base oficial para scoring.")
 
 
 # ── rodape ───────────────────────────────────────────────────────────────────

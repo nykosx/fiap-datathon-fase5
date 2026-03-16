@@ -1,0 +1,71 @@
+# Guia do Projeto
+
+## Objetivo
+
+Entregar uma solucao completa do Datathon com:
+- pipeline de dados reprodutivel;
+- analise diagnostica das 11 perguntas de negocio;
+- modelo preditivo de risco de defasagem no ano seguinte;
+- aplicacao Streamlit para apoio operacional;
+- materiais finais de storytelling para PPT/PDF e video.
+
+## Estado Atual
+
+### Concluido
+- Exploracao e consolidacao dos dados em notebooks/01_data_exploration.ipynb e notebooks/02_data_cleaning.ipynb.
+- Analise diagnostica em notebooks/03_analytical_questions.ipynb.
+- Modelagem preditiva temporal em notebooks/04_predictive_modeling.ipynb.
+- App Streamlit funcional em app/app.py.
+- Artefatos gerados:
+  - models/model_risco.joblib
+  - outputs/model_risco_metadata.json
+  - outputs/modelagem_leaderboard.csv
+  - outputs/predicoes_modelo_vencedor.csv
+  - outputs/modelagem_tradeoff_thresholds.csv
+  - outputs/modelagem_tradeoff_capacidade.csv
+
+### Em aberto
+- Deploy no Streamlit Community Cloud.
+- Apresentacao final (PPT/PDF).
+- Video final (ate 5 minutos).
+
+## Fonte de Verdade
+
+### Base oficial
+- data/dados_unificados.csv
+
+### Numeros oficiais para materiais finais
+- notebooks/03_analytical_questions.ipynb
+- notebooks/04_predictive_modeling.ipynb
+- outputs/modelagem_leaderboard.csv
+- outputs/model_risco_metadata.json
+- outputs/predicoes_modelo_vencedor.csv
+- outputs/modelagem_tradeoff_thresholds.csv
+- outputs/modelagem_tradeoff_capacidade.csv
+
+## Decisoes Metodologicas que Devem Ser Preservadas
+
+1. A avaliacao do modelo e temporal:
+   - treino: ano base 2022 para prever 2023;
+   - teste: ano base 2023 para prever 2024.
+2. O alvo e target_risco_next, definido a partir do INDE do ano seguinte.
+3. O criterio de selecao do modelo prioriza cobertura de risco detectado (recall), com roc_auc como desempate.
+4. IPP nao deve ser imputado em 2022 como abordagem principal.
+
+## Continuacao Recomendada
+
+1. Validar o app localmente com CSV de exemplo e base oficial 2024.
+2. Fechar PPT/PDF com numeros identicos aos outputs.
+3. Gravar o video final seguindo o roteiro-base em docs/STORYTELLING_BASE.md.
+4. Publicar o app e registrar a URL no README.
+
+## Checklist Final
+
+- [x] Pipeline de dados consolidado
+- [x] 11 perguntas respondidas
+- [x] Modelo treinado e salvo
+- [x] App funcional
+- [x] Tabelas de trade-off geradas
+- [ ] Deploy publicado
+- [ ] PPT/PDF final
+- [ ] Video final

@@ -1,4 +1,4 @@
-# Documentação do Projeto
+# Metodologia do Projeto
 
 ## Visão Geral
 Projeto de analytics e modelagem preditiva para avaliar o programa educacional da Associação Passos Mágicos.
@@ -153,19 +153,6 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 ---
 
-## Checklist de Entregas
-
-- [x] Notebooks com pipeline completo
-- [x] Módulos de código (config, utils, modelagem)
-- [x] Artefatos de modelo treinado
-- [x] Aplicação Streamlit
-- [ ] Apresentação (PDF/PPT)
-- [ ] Vídeo (até 5 minutos)
-- [ ] Repositório com README
-- [ ] Documentação da metodologia
-
----
-
 ## Perguntas a Responder
 
 1. **Evolução do IAN**: Tendência do perfil de deficiência
@@ -227,7 +214,7 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 ### Estratégia de Limpeza
 
-1. **Padronizar Nomes de Colunas**: Mapear variações para nomes canônicos
+1. **Padronizar Nomes de Colunas**: Mapear variações para nomes padronizados
 2. **Remover 100% Faltantes**: Eliminar artefatos (Avaliador5/6, colunas Rec vazias)
 3. **Tratar Ausências Esperadas**: Documentar causas (trilha de idioma, coorte)
 4. **Criar Dataset Unificado**: Mesclar anos com identificador de ano
@@ -236,19 +223,12 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 ---
 
-## Estado de Implementação (Atual)
+## Escopo deste Documento
 
-- Dataset unificado em uso: `data/dados_unificados.csv` (3030 linhas).
-- Notebook de perguntas analíticas atualizado com:
-	- texto da pergunta no markdown de Q1-Q11,
-	- visualizações individuais logo abaixo das questões principais (Q1, Q2, Q3, Q5, Q6, Q8, Q9).
-- Notebook de modelagem criado e executado: `notebooks/04_predictive_modeling.ipynb`.
-- Metodologia temporal implementada no notebook de modelagem (t -> t+1).
-- Artefatos gerados:
-	- `models/model_risco.joblib`
-	- `outputs/model_risco_metadata.json`
-	- `outputs/modelagem_leaderboard.csv`
+Este arquivo descreve apenas a metodologia e as decisoes tecnicas do projeto.
 
----
+Para status, continuidade e entregas, consulte:
+- docs/PROJECT_GUIDE.md
 
-Este documento será atualizado conforme novos achados e decisões metodológicas.
+Para narrativa executiva de apresentacao e video, consulte:
+- docs/STORYTELLING_BASE.md
