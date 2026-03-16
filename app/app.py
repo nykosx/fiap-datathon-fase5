@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 
 import joblib
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
@@ -35,8 +36,31 @@ def ensure_cols(df: pd.DataFrame, cols: list) -> pd.DataFrame:
     out = df.copy()
     for c in cols:
         if c not in out.columns:
-            out[c] = pd.NA
+            out[c] = np.nan
     return out
+
+
+def prepare_scoring_frame(df: pd.DataFrame, expected_features: list) -> pd.DataFrame:
+    """Normaliza entradas para scoring e evita NAType em pipelines do sklearn."""
+    scored = ensure_cols(df, expected_features)[expected_features].copy()
+    scored = scored.replace({pd.NA: np.nan})
+
+    categorical_features = {
+        "year",
+        "phase",
+        "gender",
+        "school_institution",
+        "achieved_turning_point",
+        "indicated_for_intervention",
+    }
+
+    for col in scored.columns:
+        if col in categorical_features:
+            scored[col] = scored[col].replace(["", " ", "nan", "None", "NA", "N/A"], np.nan)
+        else:
+            scored[col] = pd.to_numeric(scored[col], errors="coerce")
+
+    return scored
 
 
 def risk_color(prob: float) -> str:
@@ -417,7 +441,7 @@ with tab_individual:
             input_dict["ipp"] = ipp
 
         input_df = pd.DataFrame([input_dict])
-        scored = ensure_cols(input_df, expected_features)[expected_features]
+        scored = prepare_scoring_frame(input_df, expected_features)
         prob = float(model.predict_proba(scored)[0, 1])
 
         st.markdown("---")
@@ -577,7 +601,7 @@ with tab_massa:
         st.subheader("Amostra de entrada")
         st.dataframe(input_df.head(10), use_container_width=True)
 
-        scored_base = ensure_cols(input_df, expected_features)[expected_features].copy()
+        scored_base = prepare_scoring_frame(input_df, expected_features)
         probs = model.predict_proba(scored_base)[:, 1]
         preds = (probs >= score_threshold).astype(int)
 
