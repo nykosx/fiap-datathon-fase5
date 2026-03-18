@@ -1,4 +1,5 @@
 import json
+import re
 from pathlib import Path
 
 import joblib
@@ -8,7 +9,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 st.set_page_config(
-    page_title="Risco de Defasagem — Passos Mágicos",
+    page_title="Risco de Defasagem - Passos Magicos",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -20,34 +21,96 @@ METADATA_PATH = PROJECT_ROOT / "outputs" / "model_risco_metadata.json"
 OFFICIAL_DATA_PATH = PROJECT_ROOT / "data" / "dados_unificados.csv"
 
 
-# ── helpers ──────────────────────────────────────────────────────────────────
-
 @st.cache_resource
 def load_artifacts():
-    meta = None
+    metadata = None
     if METADATA_PATH.exists():
         with open(METADATA_PATH, "r", encoding="utf-8") as fp:
-            meta = json.load(fp)
-    mdl = joblib.load(MODEL_PATH)
-    return meta, mdl
+            metadata = json.load(fp)
+    model = joblib.load(MODEL_PATH)
+    return metadata, model
 
 
-def ensure_cols(df: pd.DataFrame, cols: list) -> pd.DataFrame:
+def parse_risk_threshold_from_target(target_definition: str, default: float = 5.0) -> float:
+    if not target_definition:
+        return default
+    match = re.search(r"<=\s*([0-9]+(?:\.[0-9]+)?)", target_definition)
+    if not match:
+        return default
+    try:
+        return float(match.group(1))
+    except ValueError:
+        return default
+
+
+def ensure_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
     out = df.copy()
-    for c in cols:
-        if c not in out.columns:
-            out[c] = np.nan
+    for col in cols:
+        if col not in out.columns:
+            out[col] = np.nan
     return out
 
 
-def prepare_scoring_frame(df: pd.DataFrame, expected_features: list) -> pd.DataFrame:
-    """Normaliza entradas para scoring e evita NAType em pipelines do sklearn."""
-    scored = ensure_cols(df, expected_features)[expected_features].copy()
+_PHASE_MAP = {
+    "alfa": "ALFA",
+    "0": "ALFA",
+    "1": "FASE 1",
+    "fase1": "FASE 1",
+    "fase 1": "FASE 1",
+    "2": "FASE 2",
+    "fase2": "FASE 2",
+    "fase 2": "FASE 2",
+    "3": "FASE 3",
+    "fase3": "FASE 3",
+    "fase 3": "FASE 3",
+    "4": "FASE 4",
+    "fase4": "FASE 4",
+    "fase 4": "FASE 4",
+    "5": "FASE 5",
+    "fase5": "FASE 5",
+    "fase 5": "FASE 5",
+    "6": "FASE 6",
+    "fase6": "FASE 6",
+    "fase 6": "FASE 6",
+    "7": "FASE 7",
+    "fase7": "FASE 7",
+    "fase 7": "FASE 7",
+    "8": "FASE 8",
+    "fase8": "FASE 8",
+    "fase 8": "FASE 8",
+}
+
+
+def canonicalize_phase(value):
+    if value is None or (isinstance(value, float) and np.isnan(value)):
+        return np.nan
+    token = str(value).strip().lower()
+    if token in _PHASE_MAP:
+        return _PHASE_MAP[token]
+
+    m = re.match(r"^(\d+)", token)
+    if m:
+        n = int(m.group(1))
+        if n == 0:
+            return "ALFA"
+        if 1 <= n <= 8:
+            return f"FASE {n}"
+    return np.nan
+
+
+def prepare_scoring_frame(df: pd.DataFrame, expected_features: list[str]) -> pd.DataFrame:
+    working = df.copy()
+
+    if "fase_padronizada" in expected_features and "fase_padronizada" not in working.columns:
+        if "phase" in working.columns:
+            working["fase_padronizada"] = working["phase"].apply(canonicalize_phase)
+
+    scored = ensure_cols(working, expected_features)[expected_features].copy()
     scored = scored.replace({pd.NA: np.nan})
 
     categorical_features = {
         "year",
-        "phase",
+        "fase_padronizada",
         "gender",
         "school_institution",
         "achieved_turning_point",
@@ -83,566 +146,346 @@ def risk_label(prob: float) -> str:
     return "Baixo Risco"
 
 
-def build_recommendations(prob: float, inputs: dict, q1_threshold: float = 6.63) -> list:
-    """Recomendacoes contextualizadas ao perfil e nivel de risco do aluno."""
+def build_recommendations(prob: float, inputs: dict, ian_threshold: float = 5.0) -> list[str]:
     recs = []
 
-    ian  = inputs.get("ian",  10)
-    ida  = inputs.get("ida",  10)
-    ieg  = inputs.get("ieg",  10)
-    iaa  = inputs.get("iaa",  10)
-    ips  = inputs.get("ips",  10)
-    ipv  = inputs.get("ipv",  10)
-    inde = inputs.get("inde_combined")
-    math_ = inputs.get("math",       10)
-    port  = inputs.get("portuguese", 10)
-    eng   = inputs.get("english",    10)
-    turn  = inputs.get("achieved_turning_point",    "Nao")
-    interv = inputs.get("indicated_for_intervention", "Nao")
+    ian = float(inputs.get("ian", 10.0) or 10.0)
+    ida = float(inputs.get("ida", 10.0) or 10.0)
+    ieg = float(inputs.get("ieg", 10.0) or 10.0)
+    iaa = float(inputs.get("iaa", 10.0) or 10.0)
+    ips = float(inputs.get("ips", 10.0) or 10.0)
+    ipv = float(inputs.get("ipv", 10.0) or 10.0)
 
-    # ── Nível de risco global ────────────────────────────────────────────────
     if prob >= 0.7:
-        recs.append(
-            "🔴 **Atencao prioritaria:** Alta probabilidade de defasagem no proximo ciclo. "
-            "Intervencao imediata pela equipe pedagogica é recomendada."
-        )
+        recs.append("🔴 **Atencao prioritaria:** Alta probabilidade de defasagem no proximo ciclo. Acionar intervencao imediata.")
     elif prob >= 0.5:
-        recs.append(
-            "🟠 **Acompanhamento proximo:** Probabilidade elevada de defasagem. "
-            "Incluir nos ciclos de monitoramento mensal e revisar plano pedagogico."
-        )
+        recs.append("🟠 **Acompanhamento proximo:** Probabilidade elevada de defasagem. Inserir no monitoramento mensal.")
     elif prob >= 0.3:
-        recs.append(
-            "🟡 **Zona de atencao:** Risco moderado. "
-            "Monitorar evolucao nos proximos bimestres e identificar tendencias negativas."
-        )
+        recs.append("🟡 **Zona de atencao:** Risco moderado. Monitorar tendencia e reforcar suporte pedagogico.")
     else:
+        recs.append("🟢 **Perfil estavel:** Baixo risco estimado no proximo ciclo. Manter acompanhamento regular.")
+
+    if ian <= ian_threshold:
         recs.append(
-            "🟢 **Perfil estavel:** Baixo risco de defasagem. "
-            "Manter incentivos, acompanhamento regular e reforcar pontos fortes do aluno."
+            f"**IAN atual ({ian:.2f}) no limite de risco ({ian_threshold:.2f}) ou abaixo:** priorizar plano de recuperacao academica e nivelamento."
+        )
+    elif ian <= ian_threshold + 1.0:
+        recs.append(
+            f"**IAN atual ({ian:.2f}) proximo do limite de risco ({ian_threshold:.2f}):** pequena piora pode levar a defasagem no ciclo seguinte."
         )
 
-    # ── Contexto INDE vs. limiar de risco ────────────────────────────────────
-    if inde is not None:
-        if inde <= q1_threshold:
-            recs.append(
-                f"**INDE atual ({inde:.2f}) abaixo do limiar de risco ({q1_threshold:.2f}):** "
-                "O indice composto ja sinaliza defasagem. Avaliar sub-indicadores para identificar pontos criticos."
-            )
-        elif inde <= q1_threshold + 0.5:
-            recs.append(
-                f"**INDE atual ({inde:.2f}) proximo do limiar de risco ({q1_threshold:.2f}):** "
-                "Margem estreita — pequena queda pode levar a defasagem no proximo ano."
-            )
-
-    # ── Indicadores Passos Magicos ────────────────────────────────────────────
-    if ian < 4:
-        recs.append(
-            "**IAN critico (adequacao de nivel):** Aluno significativamente abaixo da fase esperada. "
-            "Considere reforco individualizado ou revisao de nivelamento."
-        )
-    elif ian < 6:
-        recs.append(
-            "**IAN em desenvolvimento:** Ha lacunas de conteudo em relacao a fase. "
-            "Atividades de recuperacao paralela sao recomendadas."
-        )
-
-    if ida < 4:
-        recs.append(
-            "**IDA critico (desenvolvimento academico):** Progressao academica muito abaixo do esperado. "
-            "Revisar frequencia, participacao em aulas e entrega de atividades."
-        )
-    elif ida < 6:
-        recs.append(
-            "**IDA em desenvolvimento:** Progresso aquem do potencial. "
-            "Identificar barreiras especificas de aprendizagem e oferecer suporte direcionado."
-        )
-
-    if ieg < 4:
-        recs.append(
-            "**IEG critico (engajamento):** Baixo engajamento com o programa. "
-            "Estrategias de motivacao, mentoria e atividades extracurriculares sao indicadas."
-        )
-    elif ieg < 6:
-        recs.append(
-            "**IEG moderado:** Engajamento parcial. "
-            "Verificar fatores externos que possam estar afetando a participacao."
-        )
-
-    if iaa < 4:
-        recs.append(
-            "**IAA critico (autoavaliacao):** Aluno demonstra baixa percepcao de suas capacidades. "
-            "Sessoes de coaching e tecnicas de reforco de autoestima sao recomendadas."
-        )
-    elif iaa < 6:
-        recs.append(
-            "**IAA moderado:** Aluno tende a subestimar seu desenvolvimento. "
-            "Feedback positivo estruturado e reconhecimento de conquistas podem ajudar."
-        )
-
-    if ips < 4:
-        recs.append(
-            "**IPS critico (psicossocial):** Vulnerabilidade psicossocial elevada. "
-            "Acionar assistente social ou psicologo da equipe Passos Magicos."
-        )
-    elif ips < 6:
-        recs.append(
-            "**IPS moderado:** Alguma pressao psicossocial identificada. "
-            "Verificar contexto familiar, de saude e rede de apoio do aluno."
-        )
-
-    if ipv < 4:
-        recs.append(
-            "**IPV critico (ponto de virada):** Aluno ainda distante do ponto de virada. "
-            "Definir metas de curto prazo concretas e celebrar pequenas conquistas."
-        )
-    elif ipv < 6:
-        recs.append(
-            "**IPV em construcao:** Aluno em caminho para o ponto de virada. "
-            "Reforcar perspectiva de futuro e projetos de vida."
-        )
-
-    # ── Notas escolares ───────────────────────────────────────────────────────
-    low_grades = [s for s, v in [("Matematica", math_), ("Portugues", port), ("Ingles", eng)] if v < 4]
-    mid_grades = [s for s, v in [("Matematica", math_), ("Portugues", port), ("Ingles", eng)] if 4 <= v < 6]
-    if low_grades:
-        recs.append(
-            f"**Notas criticas em:** {', '.join(low_grades)}. "
-            "Reforco especifico nestas disciplinas, preferencialmente em grupos reduzidos."
-        )
-    elif mid_grades:
-        recs.append(
-            f"**Notas em desenvolvimento em:** {', '.join(mid_grades)}. "
-            "Acompanhar evolucao e oferecer suporte direcionado."
-        )
-
-    # ── Flags contextuais ─────────────────────────────────────────────────────
-    if interv == "Sim":
-        recs.append(
-            "**Ja indicado para intervencao:** Verificar se o plano de acao esta ativo "
-            "e documentar evolucao no proximo ciclo de avaliacao."
-        )
-
-    if turn == "Nao":
-        recs.append(
-            "**Ponto de virada nao alcancado:** Definir um objetivo concreto e mensuravel "
-            "junto ao aluno para o proximo trimestre."
-        )
+    if ida < 6:
+        recs.append("**IDA em desenvolvimento:** revisar lacunas de conteudo e frequencia de atividades.")
+    if ieg < 6:
+        recs.append("**IEG abaixo do ideal:** reforcar engajamento com mentoria e combinados de participacao.")
+    if iaa < 6:
+        recs.append("**IAA abaixo do ideal:** aplicar feedback estruturado para fortalecer autopercepcao.")
+    if ips < 6:
+        recs.append("**IPS abaixo do ideal:** investigar contexto psicossocial e rede de apoio.")
+    if ipv < 6:
+        recs.append("**IPV abaixo do ideal:** definir metas de curto prazo e acompanhar marcos de progresso.")
 
     return recs
 
 
-# ── carrega artefatos ─────────────────────────────────────────────────────────
-
-if not MODEL_PATH.exists():
-    st.error(f"Modelo nao encontrado em: {MODEL_PATH}")
-    st.stop()
-
-metadata, model = load_artifacts()
-
-winner_track = metadata.get("winner_track", "trilha_core_com_ipp") if metadata else "trilha_core_com_ipp"
-expected_features = []
-if metadata:
-    if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp", "trilha_temporal_com_ipp"}:
-        track_key = "track2"
-    else:  # trilha1_sem_ipp, trilha_core_sem_ipp, trilha_temporal_sem_ipp, fallback
-        track_key = "track1"
-    expected_features = (metadata.get(track_key) or {}).get("features", [])
-
-has_ipp = "ipp" in expected_features
+def resolve_expected_features(metadata: dict | None) -> tuple[str, list[str]]:
+    winner_track = metadata.get("winner_track", "trilha_temporal_sem_ipp") if metadata else "trilha_temporal_sem_ipp"
+    expected_features = []
+    if metadata:
+        if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp", "trilha_temporal_com_ipp"}:
+            track_key = "track2"
+        else:
+            track_key = "track1"
+        expected_features = (metadata.get(track_key) or {}).get("features", [])
+    return winner_track, expected_features
 
 
-# ── cabecalho ────────────────────────────────────────────────────────────────
+def render_header(metadata: dict | None):
+    st.title("Sistema de Risco Academico - Passos Magicos")
 
-st.title("Sistema de Risco Academico - Passos Magicos")
-m = metadata.get("winner_metrics", {}) if metadata else {}
-st.caption(
-    "Identificacao precoce de alunos em risco de defasagem educacional. "
-    f"Modelo: {metadata.get('winner_model', 'logistic') if metadata else 'logistic'} | "
-    f"Cobertura de risco (deteccao): {m.get('recall', 0):.1%} | "
-    f"Qualidade geral de separacao: {m.get('roc_auc', 0):.3f}"
-)
-st.markdown("---")
+    metrics = metadata.get("winner_metrics", {}) if metadata else {}
+    target_definition = metadata.get("target_definition", "target_risco_next = 1 quando ian_next_year <= 5") if metadata else "target_risco_next = 1 quando ian_next_year <= 5"
 
-tab_individual, tab_massa = st.tabs(["Aluno Individual", "Predicao em Massa (CSV)"])
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ABA 1 — ALUNO INDIVIDUAL
-# ══════════════════════════════════════════════════════════════════════════════
-
-with tab_individual:
-    st.subheader("Avaliacao de um aluno")
-
-    q1_thr = metadata.get("q1_train_inde_next_year", 6.63) if metadata else 6.63
-    st.info(
-        f"ℹ️ O modelo estima o risco de **defasagem no próximo ano** com base nos indicadores atuais. "
-        f"Definicao de risco: INDE no proximo ciclo ≤ **{q1_thr:.2f}** (25% piores resultados no treino). "
-        f"Modelo: **{metadata.get('winner_model', 'logistic') if metadata else 'logistic'}** — "
-        f"Cobertura de risco (deteccao): **{m.get('recall', 0):.1%}** | "
-        f"Taxa de acerto dos alertas: **{m.get('precision', 0):.1%}**"
+    st.caption(
+        "Identificacao precoce de alunos em risco de defasagem no ciclo seguinte. "
+        f"Modelo: {metadata.get('winner_model', 'random_forest') if metadata else 'random_forest'} | "
+        f"Recall: {metrics.get('recall', 0):.1%} | ROC-AUC: {metrics.get('roc_auc', 0):.3f}"
     )
 
-    with st.expander("Como interpretar este resultado", expanded=False):
+    st.info(
+        "Definicao atual de risco no projeto: "
+        f"**{target_definition}**"
+    )
+
+
+def render_individual_tab(model, metadata: dict | None, expected_features: list[str], has_ipp: bool, ian_threshold: float):
+    st.subheader("Avaliacao de um aluno")
+
+    metrics = metadata.get("winner_metrics", {}) if metadata else {}
+
+    with st.expander("Como interpretar o score", expanded=False):
         st.markdown(
-            "- **Cobertura de risco (deteccao)**: de cada 100 alunos que realmente entrariam em risco, quantos o modelo consegue sinalizar.\n"
-            "- **Taxa de acerto dos alertas**: de cada 100 alunos sinalizados pelo modelo, quantos de fato entram em risco.\n"
-            "- **Ponto de corte de alerta**: valor de probabilidade a partir do qual o aluno vira 'alerta'. "
-            "Reduzir esse valor aumenta cobertura, mas tambem aumenta falsos alarmes."
+            "- **Recall**: de cada 100 alunos que realmente entram em risco, quantos o modelo sinaliza.\n"
+            "- **Precisao**: de cada 100 alertas, quantos sao casos reais de risco.\n"
+            "- **Ponto de corte de alerta**: limite para classificar como risco no uso operacional."
         )
 
     with st.form("form_aluno"):
         col_a, col_b, col_c = st.columns(3)
 
         with col_a:
-            st.markdown("**Dados Cadastrais**")
+            st.markdown("**Dados cadastrais**")
             year = st.selectbox("Ano de referencia", ["PEDE2022", "PEDE2023", "PEDE2024"]) if "year" in expected_features else "PEDE2024"
-            phase_options = [
-                "ALFA",
-                "FASE 1", "FASE 2", "FASE 3", "FASE 4", "FASE 5", "FASE 6", "FASE 7", "FASE 8",
-                "1", "2", "3", "4", "5", "6", "7", "8",
-            ]
-            phase = (
-                st.selectbox("Fase atual", phase_options)
-                if "phase" in expected_features
-                else "4"
-            )
-            admission_year = (
-                st.number_input("Ano de ingresso", min_value=2010, max_value=2024, value=2020, step=1)
-                if "admission_year" in expected_features
-                else None
-            )
-            age = (
-                st.number_input("Idade atual", min_value=6, max_value=25, value=13, step=1)
-                if "age" in expected_features
-                else None
-            )
-            age_2022 = (
-                st.number_input("Idade em 2022", min_value=6, max_value=25, value=11, step=1)
-                if "age_2022" in expected_features
-                else None
-            )
+            phase_options = ["Alfa", "Fase 1", "Fase 2", "Fase 3", "Fase 4", "Fase 5", "Fase 6", "Fase 7", "Fase 8"]
+            show_phase = "fase_padronizada" in expected_features or "phase" in expected_features
+            phase_str = st.selectbox("Fase atual", phase_options) if show_phase else "Fase 4"
+
+            age = st.number_input("Idade atual", min_value=6, max_value=25, value=13, step=1) if "age" in expected_features else None
             gender = st.selectbox("Genero", ["Feminino", "Masculino"]) if "gender" in expected_features else "Feminino"
             school_institution = (
                 st.selectbox("Instituicao escolar", ["Escola Publica", "Rede Decisao", "Escola Privada", "Outros"])
                 if "school_institution" in expected_features
                 else "Escola Publica"
             )
-            st.markdown("**Contexto Pedagogico**")
-            # Sempre visíveis — usados nas recomendações (não entram no modelo)
-            achieved_turning_point = st.selectbox(
-                "Atingiu ponto de virada?", ["Nao", "Sim"],
-                help="Indica se o aluno ja demonstrou uma mudanca significativa de perspectiva."
-            )
-            indicated_for_intervention = st.selectbox(
-                "Ja indicado para intervencao?", ["Nao", "Sim"],
-                help="Indica se o aluno ja faz parte de algum plano de intervencao ativo."
-            )
-            deficiency = st.selectbox("Possui deficiencia?", ["Nao", "Sim"]) if "deficiency" in expected_features else "Nao"
 
         with col_b:
             st.markdown("**Indicadores Passos Magicos**")
-            ian = st.slider(
-                "IAN - Adequacao de Nivel", 0.0, 10.0, 5.0, 0.1,
-                help="Mede o alinhamento entre o desempenho do aluno e a fase esperada para sua idade."
-            )
-            ida = st.slider(
-                "IDA - Desenvolvimento Academico", 0.0, 10.0, 5.0, 0.1,
-                help="Mede o progresso academico ao longo do periodo avaliado."
-            )
-            ieg = st.slider(
-                "IEG - Engajamento", 0.0, 10.0, 5.0, 0.1,
-                help="Grau de participacao e engajamento do aluno no programa."
-            )
-            iaa = st.slider(
-                "IAA - Autoavaliacao", 0.0, 10.0, 5.0, 0.1,
-                help="Percepcao do aluno sobre seu proprio desempenho e evolucao."
-            )
-            ips = st.slider(
-                "IPS - Psicossocial", 0.0, 10.0, 5.0, 0.1,
-                help="Indicador de bem-estar psicossocial e condicao socioeconomica. Valores baixos indicam maior vulnerabilidade."
-            )
-            ipv = st.slider(
-                "IPV - Ponto de Virada", 0.0, 10.0, 5.0, 0.1,
-                help="Indica se o aluno esta se aproximando ou ja atingiu seu ponto de virada."
-            )
-            if has_ipp:
-                ipp = st.slider(
-                    "IPP - Ponto de Partida", 0.0, 10.0, 5.0, 0.1,
-                    help="Situacao inicial do aluno ao ingressar no programa."
-                )
-            else:
-                ipp = None
+            ian = st.slider("IAN", 0.0, 10.0, 5.0, 0.1)
+            ida = st.slider("IDA", 0.0, 10.0, 5.0, 0.1)
+            ieg = st.slider("IEG", 0.0, 10.0, 5.0, 0.1)
+            iaa = st.slider("IAA", 0.0, 10.0, 5.0, 0.1)
+            ips = st.slider("IPS", 0.0, 10.0, 5.0, 0.1)
+            ipv = st.slider("IPV", 0.0, 10.0, 5.0, 0.1)
+            ipp = st.slider("IPP", 0.0, 10.0, 5.0, 0.1) if has_ipp else None
 
         with col_c:
-            st.markdown("**Desempenho Escolar**")
+            st.markdown("**Desempenho escolar**")
             math = st.slider("Matematica", 0.0, 10.0, 5.0, 0.1)
             portuguese = st.slider("Portugues", 0.0, 10.0, 5.0, 0.1)
             english = st.slider("Ingles", 0.0, 10.0, 5.0, 0.1)
-            if "inde_combined" in expected_features:
-                inde_combined = st.slider(
-                    "INDE - Indice de Desenv. Educacional", 0.0, 10.0, 7.0, 0.01,
-                    help=(
-                        f"Indice geral de desenvolvimento educacional do ultimo ciclo disponivel. "
-                        f"Limiar de risco de referencia: {q1_thr:.2f}"
-                    ),
-                )
-            else:
-                inde_combined = None
+            achieved_turning_point = st.selectbox("Atingiu ponto de virada?", ["Nao", "Sim"])
+            indicated_for_intervention = st.selectbox("Ja indicado para intervencao?", ["Nao", "Sim"])
 
-        submitted = st.form_submit_button("Calcular Risco", use_container_width=True)
+        submitted = st.form_submit_button("Calcular risco", use_container_width=True)
 
-    if submitted:
-        # mapeia valores do formulario para os esperados pelo modelo
-        school_map = {
-            "Escola Publica": "Escola Pública",
-            "Rede Decisao": "Rede Decisão",
-            "Escola Privada": "Escola Privada",
-            "Outros": "Outros",
+    if not submitted:
+        return
+
+    school_map = {
+        "Escola Publica": "Escola Pública",
+        "Rede Decisao": "Rede Decisão",
+        "Escola Privada": "Escola Privada",
+        "Outros": "Outros",
+    }
+    sim_nao_map = {"Nao": "Não", "Sim": "Sim"}
+
+    input_dict = {
+        "ian": ian,
+        "ida": ida,
+        "ieg": ieg,
+        "iaa": iaa,
+        "ips": ips,
+        "ipv": ipv,
+        "math": math,
+        "portuguese": portuguese,
+        "english": english,
+    }
+
+    if "year" in expected_features:
+        input_dict["year"] = year
+    if "fase_padronizada" in expected_features:
+        input_dict["fase_padronizada"] = canonicalize_phase(phase_str)
+    elif "phase" in expected_features:
+        input_dict["phase"] = phase_str
+    if "age" in expected_features and age is not None:
+        input_dict["age"] = age
+    if "gender" in expected_features:
+        input_dict["gender"] = gender
+    if "school_institution" in expected_features:
+        input_dict["school_institution"] = school_map.get(school_institution, school_institution)
+    if "achieved_turning_point" in expected_features:
+        input_dict["achieved_turning_point"] = sim_nao_map.get(achieved_turning_point, achieved_turning_point)
+    if "indicated_for_intervention" in expected_features:
+        input_dict["indicated_for_intervention"] = sim_nao_map.get(indicated_for_intervention, indicated_for_intervention)
+    if has_ipp and ipp is not None:
+        input_dict["ipp"] = ipp
+
+    scored = prepare_scoring_frame(pd.DataFrame([input_dict]), expected_features)
+    prob = float(model.predict_proba(scored)[0, 1])
+
+    st.markdown("---")
+    col_res1, col_res2 = st.columns([1, 2])
+
+    with col_res1:
+        color = risk_color(prob)
+        label = risk_label(prob)
+        st.markdown(
+            f"<div style='background:{color};padding:20px;border-radius:12px;text-align:center;'>"
+            f"<p style='color:white;font-size:1.2rem;margin:0;font-weight:bold;'>{label}</p>"
+            f"<p style='color:white;font-size:2.2rem;margin:4px 0;font-weight:bold;'>{prob:.1%}</p>"
+            f"<p style='color:rgba(255,255,255,0.90);margin:0;font-size:0.9rem;'>probabilidade de risco no proximo ciclo</p>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        st.metric("Limiar de risco usado no alvo (IAN)", f"<= {ian_threshold:.2f}")
+        st.metric("Recall do modelo", f"{metrics.get('recall', 0):.1%}")
+        st.metric("Precisao dos alertas", f"{metrics.get('precision', 0):.1%}")
+
+    with col_res2:
+        indicators = {
+            "IAN": ian,
+            "IDA": ida,
+            "IEG": ieg,
+            "IAA": iaa,
+            "IPS": ips,
+            "IPV": ipv,
         }
-        tp_map = {"Nao": "Não", "Sim": "Sim"}
-
-        input_dict = {
-            "ian": ian,
-            "ida": ida,
-            "ieg": ieg,
-            "iaa": iaa,
-            "ips": ips,
-            "ipv": ipv,
-            "math": math,
-            "portuguese": portuguese,
-            "english": english,
-        }
-
-        if "year" in expected_features:
-            input_dict["year"] = year
-        if "phase" in expected_features:
-            input_dict["phase"] = phase
-        if "admission_year" in expected_features and admission_year is not None:
-            input_dict["admission_year"] = admission_year
-        if "age" in expected_features and age is not None:
-            input_dict["age"] = age
-        if "age_2022" in expected_features and age_2022 is not None:
-            input_dict["age_2022"] = age_2022
-        if "deficiency" in expected_features:
-            input_dict["deficiency"] = 1.0 if deficiency == "Sim" else 0.0
-        if "gender" in expected_features:
-            input_dict["gender"] = gender
-        if "school_institution" in expected_features:
-            input_dict["school_institution"] = school_map.get(school_institution, school_institution)
-        if "achieved_turning_point" in expected_features:
-            input_dict["achieved_turning_point"] = tp_map.get(achieved_turning_point, achieved_turning_point)
-        if "indicated_for_intervention" in expected_features:
-            input_dict["indicated_for_intervention"] = tp_map.get(indicated_for_intervention, indicated_for_intervention)
-
-        if "inde_combined" in expected_features and inde_combined is not None:
-            input_dict["inde_combined"] = inde_combined
         if has_ipp and ipp is not None:
-            input_dict["ipp"] = ipp
+            indicators["IPP"] = ipp
 
-        input_df = pd.DataFrame([input_dict])
-        scored = prepare_scoring_frame(input_df, expected_features)
-        prob = float(model.predict_proba(scored)[0, 1])
-
-        st.markdown("---")
-        col_res1, col_res2 = st.columns([1, 2])
-
-        with col_res1:
-            st.subheader("Resultado")
-            color = risk_color(prob)
-            label = risk_label(prob)
-            st.markdown(
-                f"<div style='background:{color};padding:24px;border-radius:12px;text-align:center;'>"
-                f"<p style='color:white;font-size:1.3rem;margin:0;font-weight:bold;'>{label}</p>"
-                f"<p style='color:white;font-size:2.4rem;margin:4px 0;font-weight:bold;'>{prob:.1%}</p>"
-                f"<p style='color:rgba(255,255,255,0.85);margin:0;font-size:0.9rem;'>probabilidade de risco no proximo ciclo</p>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
-            st.markdown(" ")
-            if "phase" in expected_features:
-                st.metric("Fase", phase)
-            if "year" in expected_features:
-                st.metric("Ano de referencia", year)
-            if inde_combined is not None:
-                delta_inde = inde_combined - q1_thr
-                st.metric(
-                    "INDE atual vs. limiar de risco",
-                    f"{inde_combined:.2f}",
-                    delta=f"{delta_inde:+.2f} vs. {q1_thr:.2f}",
-                    delta_color="normal",
-                )
-
-        with col_res2:
-            st.subheader("Perfil de indicadores")
-            indicators = {
-                "IAN": ian, "IDA": ida, "IEG": ieg,
-                "IAA": iaa, "IPS": ips, "IPV": ipv,
-            }
-            if has_ipp and ipp is not None:
-                indicators["IPP"] = ipp
-
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
+        fig = go.Figure()
+        fig.add_trace(
+            go.Bar(
                 x=list(indicators.keys()),
                 y=list(indicators.values()),
-                marker_color=[
-                    "#c0392b" if v < 4 else "#e67e22" if v < 6 else "#27ae60"
-                    for v in indicators.values()
-                ],
+                marker_color=["#c0392b" if v < 4 else "#e67e22" if v < 6 else "#27ae60" for v in indicators.values()],
                 text=[f"{v:.1f}" for v in indicators.values()],
                 textposition="outside",
-            ))
-            fig.update_layout(
-                yaxis=dict(range=[0, 11], title="Valor"),
-                xaxis_title="Indicador",
-                height=300,
-                margin=dict(t=20, b=20),
-                plot_bgcolor="rgba(0,0,0,0)",
-                paper_bgcolor="rgba(0,0,0,0)",
             )
-            fig.add_hline(
-                y=4, line_dash="dash", line_color="red", opacity=0.4,
-                annotation_text="limite critico (4.0)"
-            )
-            st.plotly_chart(fig, use_container_width=True)
-
-        st.markdown("---")
-        st.subheader("Recomendacoes de intervencao")
-        form_inputs = {
-            "ian": ian, "ida": ida, "ieg": ieg, "iaa": iaa, "ips": ips, "ipv": ipv,
-            "math": math, "portuguese": portuguese, "english": english,
-            "inde_combined": inde_combined,
-            "indicated_for_intervention": indicated_for_intervention,
-            "achieved_turning_point": achieved_turning_point,
-        }
-        for rec in build_recommendations(prob, form_inputs, q1_threshold=q1_thr):
-            st.markdown(f"- {rec}")
-
-        st.markdown("---")
-        st.info(
-            "Este sistema e uma ferramenta de apoio a equipe pedagogica e nao substitui "
-            "a avaliacao individualizada pelos profissionais da Passos Magicos."
         )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# ABA 2 — PREDICAO EM MASSA
-# ══════════════════════════════════════════════════════════════════════════════
-
-with tab_massa:
-    st.subheader("Scoring em lote via CSV")
-    st.markdown(
-        "Envie um arquivo CSV com multiplos alunos para gerar probabilidades de risco "
-        "e ranking de priorizacao em uma unica operacao."
-    )
-
-    with st.expander("Guia rapido para equipe pedagogica", expanded=False):
-        st.markdown(
-            "- **Cobertura de risco (deteccao)**: quantos alunos em risco real sao capturados.\n"
-            "- **Taxa de acerto dos alertas**: quantos alertas realmente viram risco.\n"
-            "- **Ponto de corte de alerta**: regula o volume de alunos sinalizados para atendimento."
+        fig.update_layout(
+            yaxis=dict(range=[0, 11], title="Valor"),
+            xaxis_title="Indicador",
+            height=300,
+            margin=dict(t=10, b=10),
+            plot_bgcolor="rgba(0,0,0,0)",
+            paper_bgcolor="rgba(0,0,0,0)",
         )
+        fig.add_hline(y=ian_threshold, line_dash="dash", line_color="red", opacity=0.4, annotation_text=f"limiar IAN ({ian_threshold:.2f})")
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("---")
+    st.subheader("Recomendacoes de intervencao")
+    form_inputs = {
+        "ian": ian,
+        "ida": ida,
+        "ieg": ieg,
+        "iaa": iaa,
+        "ips": ips,
+        "ipv": ipv,
+        "math": math,
+        "portuguese": portuguese,
+        "english": english,
+        "achieved_turning_point": achieved_turning_point,
+        "indicated_for_intervention": indicated_for_intervention,
+    }
+
+    for rec in build_recommendations(prob, form_inputs, ian_threshold=ian_threshold):
+        st.markdown(f"- {rec}")
+
+
+def render_batch_tab(model, metadata: dict | None, expected_features: list[str]):
+    st.subheader("Predicao em massa (CSV)")
+    st.markdown("Envie um CSV para gerar probabilidades de risco e ranking de priorizacao em lote.")
 
     with st.expander("Colunas esperadas no CSV", expanded=False):
         st.code(", ".join(expected_features), language="text")
-        m_info = metadata.get("winner_metrics", {}) if metadata else {}
-        st.write(
-            f"**Modelo:** {metadata.get('winner_model', '-')} | "
-            f"**Track:** {winner_track} | "
-            f"**Recall:** {m_info.get('recall', 0):.3f} | "
-            f"**ROC-AUC:** {m_info.get('roc_auc', 0):.3f}"
-        )
-        if expected_features:
-            template_csv = pd.DataFrame(columns=expected_features).to_csv(index=False).encode("utf-8")
-            st.download_button(
-                label="Download template CSV (colunas vazias)",
-                data=template_csv,
-                file_name="template_scoring.csv",
-                mime="text/csv",
-            )
 
     score_threshold = st.slider(
         "Ponto de corte de alerta",
-        min_value=0.10, max_value=0.90, value=0.50, step=0.05,
-        help=(
-            "A partir deste valor, o aluno vira alerta de risco. "
-            "Diminuir o ponto de corte aumenta a cobertura de alunos em risco, "
-            "mas tambem aumenta alertas falsos."
-        ),
+        min_value=0.10,
+        max_value=0.90,
+        value=0.50,
+        step=0.05,
+        help="Valores menores aumentam cobertura, mas tambem aumentam alertas falsos.",
     )
 
     uploaded = st.file_uploader("Envie um CSV com dados de alunos", type=["csv"])
-
     use_official_2024 = st.checkbox(
         "Usar base oficial 2024 (dados_unificados.csv) quando nao houver upload",
         value=False,
-        help="Gera ranking prospectivo da carteira atual (2024) para apoiar priorizacao no proximo ciclo."
     )
 
     input_df = None
-    input_label = None
+    source_label = None
+
     if uploaded is not None:
         input_df = pd.read_csv(uploaded)
-        input_label = "CSV enviado"
+        source_label = "CSV enviado"
     elif use_official_2024:
         if not OFFICIAL_DATA_PATH.exists():
             st.error(f"Base oficial nao encontrada em: {OFFICIAL_DATA_PATH}")
+            return
+
+        base_df = pd.read_csv(OFFICIAL_DATA_PATH)
+        if "year" in base_df.columns:
+            input_df = base_df[base_df["year"].astype(str).str.contains("2024", na=False)].copy()
         else:
-            base_df = pd.read_csv(OFFICIAL_DATA_PATH)
-            if "year" in base_df.columns:
-                input_df = base_df[base_df["year"].astype(str).str.contains("2024", na=False)].copy()
-            else:
-                input_df = base_df.copy()
-            input_label = "Base oficial 2024"
+            input_df = base_df.copy()
+        source_label = "Base oficial 2024"
 
-    if input_df is not None and not input_df.empty:
-        st.caption(f"Fonte utilizada: {input_label}")
-        st.subheader("Amostra de entrada")
-        st.dataframe(input_df.head(10), use_container_width=True)
+    if input_df is None:
+        return
 
-        scored_base = prepare_scoring_frame(input_df, expected_features)
-        probs = model.predict_proba(scored_base)[:, 1]
-        preds = (probs >= score_threshold).astype(int)
+    if input_df.empty:
+        st.warning("Nenhuma linha disponivel para scoring.")
+        return
 
-        result = input_df.copy()
-        result["prob_risco"] = probs
-        result["classe_risco"] = preds
-        result["prioridade"] = pd.qcut(
-            result["prob_risco"],
-            q=4,
-            labels=["baixa", "media", "alta", "critica"],
-            duplicates="drop",
-        )
-        result = result.sort_values("prob_risco", ascending=False).reset_index(drop=True)
+    st.caption(f"Fonte utilizada: {source_label}")
+    st.dataframe(input_df.head(10), use_container_width=True)
 
-        col_m1, col_m2, col_m3, col_m4 = st.columns(4)
-        col_m1.metric("Total de alunos", len(result))
-        col_m2.metric(f"Em risco (>={score_threshold:.2f})", int((probs >= score_threshold).sum()))
-        col_m3.metric("Prioridade critica", int((result["prioridade"] == "critica").sum()))
-        col_m4.metric("Prob. media", f"{probs.mean():.1%}")
+    scored = prepare_scoring_frame(input_df, expected_features)
+    probs = model.predict_proba(scored)[:, 1]
+    preds = (probs >= score_threshold).astype(int)
 
-        st.subheader("Resultado de scoring")
-        st.dataframe(result.head(100), use_container_width=True)
+    result = input_df.copy()
+    result["prob_risco"] = probs
+    result["classe_risco"] = preds
+    result["prioridade"] = pd.qcut(result["prob_risco"], q=4, labels=["baixa", "media", "alta", "critica"], duplicates="drop")
+    result = result.sort_values("prob_risco", ascending=False).reset_index(drop=True)
 
-        csv_out = result.to_csv(index=False).encode("utf-8")
-        st.download_button(
-            label="Baixar resultado (CSV)",
-            data=csv_out,
-            file_name="scoring_risco.csv",
-            mime="text/csv",
-        )
-    elif use_official_2024 and input_df is not None and input_df.empty:
-        st.warning("Nenhuma linha de 2024 foi encontrada na base oficial para scoring.")
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("Total de alunos", len(result))
+    c2.metric(f"Em risco (>= {score_threshold:.2f})", int((probs >= score_threshold).sum()))
+    c3.metric("Prioridade critica", int((result["prioridade"] == "critica").sum()))
+    c4.metric("Probabilidade media", f"{probs.mean():.1%}")
+
+    st.subheader("Resultado de scoring")
+    st.dataframe(result.head(100), use_container_width=True)
+
+    csv_out = result.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="Baixar resultado (CSV)",
+        data=csv_out,
+        file_name="scoring_risco.csv",
+        mime="text/csv",
+    )
 
 
-# ── rodape ───────────────────────────────────────────────────────────────────
+if not MODEL_PATH.exists():
+    st.error(f"Modelo nao encontrado em: {MODEL_PATH}")
+    st.stop()
+
+metadata, model = load_artifacts()
+winner_track, expected_features = resolve_expected_features(metadata)
+has_ipp = "ipp" in expected_features
+ian_threshold = parse_risk_threshold_from_target((metadata or {}).get("target_definition", ""), default=5.0)
+
+render_header(metadata)
+st.markdown("---")
+
+tab_individual, tab_batch = st.tabs(["Aluno individual", "Predicao em massa"])
+
+with tab_individual:
+    render_individual_tab(model, metadata, expected_features, has_ipp, ian_threshold)
+
+with tab_batch:
+    render_batch_tab(model, metadata, expected_features)
 
 st.markdown("---")
 st.markdown(
     "<div style='text-align:center;color:#888;font-size:0.85rem'>"
-    "Tech Challenge Fase 5 - POSTECH Data Analytics - "
-    "Associacao Passos Magicos - Sistema de Risco Academico"
+    "Tech Challenge Fase 5 - POSTECH Data Analytics - Sistema de Risco Academico"
     "</div>",
     unsafe_allow_html=True,
 )

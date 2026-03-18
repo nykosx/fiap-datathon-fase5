@@ -43,12 +43,16 @@ Entregar uma solucao completa do Datathon com:
 - outputs/modelagem_tradeoff_thresholds.csv
 - outputs/modelagem_tradeoff_capacidade.csv
 
+Observacao de governanca:
+- o Q9 no notebook analitico funciona como baseline de triagem e leitura executiva;
+- os numeros oficiais de modelagem para banca e app devem vir do nb04 e dos arquivos em outputs/.
+
 ## Decisoes Metodologicas que Devem Ser Preservadas
 
 1. A avaliacao do modelo e temporal:
    - treino: ano base 2022 para prever 2023;
    - teste: ano base 2023 para prever 2024.
-2. O alvo e target_risco_next, definido a partir do INDE do ano seguinte.
+2. O alvo e target_risco_next, definido por `ian_next_year <= 5` no ano seguinte.
 3. O criterio de selecao do modelo prioriza cobertura de risco detectado (recall), com roc_auc como desempate.
 4. IPP nao deve ser imputado em 2022 como abordagem principal.
 

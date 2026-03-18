@@ -50,6 +50,10 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 **Por quê**: Gerar insights acionáveis sustentados por dados.
 
+Nota para Q9:
+- no notebook analítico, Q9 entrega um baseline de triagem de risco para decisão operacional rápida;
+- a modelagem oficial para entrega final, comparação de modelos e artefatos de deploy está centralizada no notebook 04.
+
 ---
 
 #### Fase 4: Modelagem Preditiva
@@ -57,9 +61,9 @@ Todas as conclusões e insights são derivados diretamente dos padrões observad
 
 **Passos**:
 - Definição temporal de alvo:
-	- construir `inde_combined` no ano base (t),
-	- construir `inde_next_year` por aluno (t+1),
-	- definir `target_risco_next = 1` quando `inde_next_year <= Q1` (Q1 calculado no treino)
+	- construir `ian_next_year` por aluno (t+1),
+	- definir `target_risco_next = 1` quando `ian_next_year <= 5` (criterio PEDE para defasagem),
+	- manter a regra fixa para comparabilidade entre ciclos.
 - Separação treino/teste temporal:
 	- treino: base 2022 (prevendo 2023)
 	- teste: base 2023 (prevendo 2024)
