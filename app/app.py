@@ -1,10 +1,16 @@
 import json
+import sys
+from pathlib import Path
 
 import joblib
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config import METADATA_PATH, MODEL_PATH, OFFICIAL_DATA_PATH
 from src.utils import canonicalize_phase, parse_risk_threshold_from_target, prepare_scoring_frame

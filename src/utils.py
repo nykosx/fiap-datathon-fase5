@@ -85,12 +85,17 @@ def prepare_scoring_frame(df: pd.DataFrame, expected_features: list[str]) -> pd.
     """Alinha e limpa o DataFrame de entrada para scoring com o modelo oficial."""
     working = df.copy()
 
+    # Garante fase_padronizada quando o modelo foi treinado com essa coluna.
     if "fase_padronizada" in expected_features and "fase_padronizada" not in working.columns:
         if "phase" in working.columns:
             working["fase_padronizada"] = working["phase"].apply(canonicalize_phase)
+        elif "fase" in working.columns:
+            working["fase_padronizada"] = working["fase"].apply(canonicalize_phase)
 
     scored = ensure_cols(working, expected_features)[expected_features].copy()
-    scored = scored.replace({pd.NA: np.nan})
+
+    # Normaliza nulos para evitar NAType no pipeline do sklearn.
+    scored = scored.astype(object).where(pd.notna(scored), np.nan)
 
     categorical_features = {
         "year",
@@ -105,7 +110,7 @@ def prepare_scoring_frame(df: pd.DataFrame, expected_features: list[str]) -> pd.
         if col in categorical_features:
             scored[col] = scored[col].replace(["", " ", "nan", "None", "NA", "N/A"], np.nan)
         else:
-            scored[col] = pd.to_numeric(scored[col], errors="coerce")
+            scored[col] = pd.to_numeric(scored[col], errors="coerce").replace([np.inf, -np.inf], np.nan)
 
     return scored
 
