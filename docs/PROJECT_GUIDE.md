@@ -25,7 +25,6 @@ Entregar uma solucao completa do Datathon com:
   - outputs/modelagem_tradeoff_capacidade.csv
 
 ### Em aberto
-- Deploy no Streamlit Community Cloud.
 - Apresentacao final (PPT/PDF).
 - Video final (ate 5 minutos).
 
@@ -61,7 +60,7 @@ Observacao de governanca:
 1. Validar o app localmente com CSV de exemplo e base oficial 2024.
 2. Fechar PPT/PDF com numeros identicos aos outputs.
 3. Gravar o video final seguindo o roteiro-base em docs/STORYTELLING_BASE.md.
-4. Publicar o app e registrar a URL no README.
+4. Registrar a URL oficial do app no README e no roteiro final.
 
 ## Checklist Final
 
@@ -70,6 +69,10 @@ Observacao de governanca:
 - [x] Modelo treinado e salvo
 - [x] App funcional
 - [x] Tabelas de trade-off geradas
-- [ ] Deploy publicado
+- [x] Deploy publicado
 - [ ] PPT/PDF final
 - [ ] Video final
+
+## Deploy Publicado
+
+- URL oficial: https://fiap-tech-challenge-fase5-prediction.streamlit.app/

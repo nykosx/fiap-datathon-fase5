@@ -25,7 +25,7 @@ Use estes arquivos como referencia principal:
 - models/: artefatos do modelo
 - notebooks/: pipeline analitico e preditivo
 - outputs/: metricas, previsoes e tabelas de apoio
-- src/: utilitarios e configuracao
+- src/: utilitarios e configuracao compartilhada (usados pelo app para paths e preprocessamento de scoring)
 
 ## Base Oficial
 
@@ -63,6 +63,10 @@ pip install -r requirements.txt
 ```bash
 streamlit run app/app.py
 ```
+
+## App Publicado
+
+- URL oficial (Streamlit Cloud): https://fiap-tech-challenge-fase5-prediction.streamlit.app/
 
 ## Licenca
 

@@ -29,15 +29,18 @@ Premissa tecnica importante:
 
 - Q1: a defasagem total caiu ao longo do periodo, com reducao mais forte da defasagem severa;
 - Q2 e Q10: ha melhora agregada de desempenho, mas com oscilacoes e heterogeneidade por fase/etapa;
-- Q3: engajamento (IEG) e alavanca transversal, associado a IDA e IPV;
+- Q3: engajamento (IEG) e alavanca transversal, associado a IDA e IPV, inclusive com evidencias de significancia estatistica em correlacoes nao parametricas;
 - Q4: existe desalinhamento relevante entre autoavaliacao (IAA) e desempenho real (IDA);
-- Q5 e Q6: IPS e IPP agregam leitura de risco complementar, nao redundante;
-- Q7 e Q8: drivers e combinacoes de indicadores explicam melhor o resultado do que variaveis isoladas;
+- Q5 e Q6: IPS e IPP agregam leitura de risco complementar, nao redundante, com testes inferenciais de diferenca entre grupos;
+- Q7 e Q8: drivers e combinacoes de indicadores explicam melhor o resultado do que variaveis isoladas; em Q7 os drivers foram organizados por dimensao (academica, engajamento e psicossocial) para orientar acao por equipe;
 - Q9: baseline de ML no notebook analitico confirma viabilidade de triagem probabilistica;
-- Q11: sintese integrada prioriza frentes de acao com horizonte operacional.
+- Q11: sintese integrada prioriza frentes de acao com horizonte operacional e adiciona o ICAP (Indice Composto de Alerta Precoce) para triagem unificada de risco.
 
 Mensagem executiva:
 - risco educacional e multidimensional; a melhor resposta e combinada (pedagogica, engajamento e psicossocial).
+
+Mensagem de implementacao:
+- operacionalmente, o pacote recomendado combina: ranking probabilistico (Q9), leitura por dimensao de driver (Q7) e score composto de alerta precoce ICAP (Q11).
 
 ## 5. Como o Modelo Principal Foi Construido (nb04)
 

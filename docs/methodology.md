@@ -8,6 +8,11 @@ Projeto de analytics e modelagem preditiva para avaliar o programa educacional d
 ### Metodologia Orientada a Dados
 Todas as conclusões e insights são derivados diretamente dos padrões observados. Não há suposições sem evidências estatísticas.
 
+Regra de governança analítica:
+- sempre separar evidência descritiva de inferência estatística;
+- evitar linguagem causal quando os dados não sustentarem causalidade;
+- para métricas oficiais de modelo e threshold, usar apenas artefatos do notebook 04 em outputs/.
+
 ### Fluxo de Análise
 
 #### Fase 1: Exploração de Dados
@@ -84,7 +89,7 @@ Nota para Q9:
 
 **Entregas**:
 - Aplicação web em Streamlit
-- Deploy em nuvem (pendente)
+- Deploy em nuvem: https://fiap-tech-challenge-fase5-prediction.streamlit.app/
 - Interface simples e objetiva
 
 **Por quê**: Converter a análise em ferramenta operacional.
@@ -146,7 +151,7 @@ Nota para Q9:
 ### Práticas em Python
 - Type hints em funções
 - Docstrings completas
-- Código modular (utils separados)
+- Código modular (funções compartilhadas em src/ reaproveitadas no app)
 - Controle de versão com commits descritivos
 - Arquivo de dependências para reprodutibilidade
 

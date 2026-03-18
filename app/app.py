@@ -1,6 +1,4 @@
 import json
-import re
-from pathlib import Path
 
 import joblib
 import numpy as np
@@ -8,18 +6,15 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from src.config import METADATA_PATH, MODEL_PATH, OFFICIAL_DATA_PATH
+from src.utils import canonicalize_phase, parse_risk_threshold_from_target, prepare_scoring_frame
+
 st.set_page_config(
     page_title="Risco de Defasagem - Passos Magicos",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-MODEL_PATH = PROJECT_ROOT / "models" / "model_risco.joblib"
-METADATA_PATH = PROJECT_ROOT / "outputs" / "model_risco_metadata.json"
-OFFICIAL_DATA_PATH = PROJECT_ROOT / "data" / "dados_unificados.csv"
-
 
 @st.cache_resource
 def load_artifacts():
@@ -29,101 +24,6 @@ def load_artifacts():
             metadata = json.load(fp)
     model = joblib.load(MODEL_PATH)
     return metadata, model
-
-
-def parse_risk_threshold_from_target(target_definition: str, default: float = 5.0) -> float:
-    if not target_definition:
-        return default
-    match = re.search(r"<=\s*([0-9]+(?:\.[0-9]+)?)", target_definition)
-    if not match:
-        return default
-    try:
-        return float(match.group(1))
-    except ValueError:
-        return default
-
-
-def ensure_cols(df: pd.DataFrame, cols: list[str]) -> pd.DataFrame:
-    out = df.copy()
-    for col in cols:
-        if col not in out.columns:
-            out[col] = np.nan
-    return out
-
-
-_PHASE_MAP = {
-    "alfa": "ALFA",
-    "0": "ALFA",
-    "1": "FASE 1",
-    "fase1": "FASE 1",
-    "fase 1": "FASE 1",
-    "2": "FASE 2",
-    "fase2": "FASE 2",
-    "fase 2": "FASE 2",
-    "3": "FASE 3",
-    "fase3": "FASE 3",
-    "fase 3": "FASE 3",
-    "4": "FASE 4",
-    "fase4": "FASE 4",
-    "fase 4": "FASE 4",
-    "5": "FASE 5",
-    "fase5": "FASE 5",
-    "fase 5": "FASE 5",
-    "6": "FASE 6",
-    "fase6": "FASE 6",
-    "fase 6": "FASE 6",
-    "7": "FASE 7",
-    "fase7": "FASE 7",
-    "fase 7": "FASE 7",
-    "8": "FASE 8",
-    "fase8": "FASE 8",
-    "fase 8": "FASE 8",
-}
-
-
-def canonicalize_phase(value):
-    if value is None or (isinstance(value, float) and np.isnan(value)):
-        return np.nan
-    token = str(value).strip().lower()
-    if token in _PHASE_MAP:
-        return _PHASE_MAP[token]
-
-    m = re.match(r"^(\d+)", token)
-    if m:
-        n = int(m.group(1))
-        if n == 0:
-            return "ALFA"
-        if 1 <= n <= 8:
-            return f"FASE {n}"
-    return np.nan
-
-
-def prepare_scoring_frame(df: pd.DataFrame, expected_features: list[str]) -> pd.DataFrame:
-    working = df.copy()
-
-    if "fase_padronizada" in expected_features and "fase_padronizada" not in working.columns:
-        if "phase" in working.columns:
-            working["fase_padronizada"] = working["phase"].apply(canonicalize_phase)
-
-    scored = ensure_cols(working, expected_features)[expected_features].copy()
-    scored = scored.replace({pd.NA: np.nan})
-
-    categorical_features = {
-        "year",
-        "fase_padronizada",
-        "gender",
-        "school_institution",
-        "achieved_turning_point",
-        "indicated_for_intervention",
-    }
-
-    for col in scored.columns:
-        if col in categorical_features:
-            scored[col] = scored[col].replace(["", " ", "nan", "None", "NA", "N/A"], np.nan)
-        else:
-            scored[col] = pd.to_numeric(scored[col], errors="coerce")
-
-    return scored
 
 
 def risk_color(prob: float) -> str:

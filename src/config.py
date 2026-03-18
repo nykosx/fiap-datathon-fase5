@@ -10,6 +10,9 @@ PROJECT_ROOT = Path(__file__).parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 MODELS_DIR = PROJECT_ROOT / "models"
 OUTPUTS_DIR = PROJECT_ROOT / "outputs"
+MODEL_PATH = MODELS_DIR / "model_risco.joblib"
+METADATA_PATH = OUTPUTS_DIR / "model_risco_metadata.json"
+OFFICIAL_DATA_PATH = DATA_DIR / "dados_unificados.csv"
 
 # Arquivo de dados bruto
 DATA_FILE = PROJECT_ROOT / "data" / "raw" / "BASE DE DADOS PEDE 2024 - DATATHON.xlsx"
