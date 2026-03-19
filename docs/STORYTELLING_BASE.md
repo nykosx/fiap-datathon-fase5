@@ -1,5 +1,9 @@
 # Storytelling Base
 
+Versoes curtas para uso da equipe:
+- docs/APRESENTACAO_GUIA.md
+- docs/VIDEO_GUIA.md
+
 ## 1. Problema de Negocio
 
 A Associacao Passos Magicos precisa decidir onde intervir primeiro, com recursos finitos, sem esperar a defasagem se consolidar.
@@ -15,8 +19,11 @@ O projeto responde duas frentes complementares:
 - Unidade analitica: aluno por ano.
 - Indicadores centrais: IAN, IDA, IEG, IAA, IPS, IPP, IPV e INDE.
 
-Premissa tecnica importante:
-- IPP e estruturalmente incompleto em 2022, por isso a trilha principal de modelagem nao depende de imputacao de IPP.
+Decisao metodologica sobre IPP:
+- IPP foi introduzido no PEDE2023 e e estruturalmente ausente em 2022 (base de treino). Qualquer imputacao constituiria leakage conceitual.
+- Analise confirma sinal preditivo fraco: correlacao IPP x risco = -0,12; diferenca de IPP medio entre grupos de risco de apenas 0,23 pontos (escala 0-10).
+- Conclusao: IPP mede engajamento com o programa, nao defasagem academica diretamente. Achado reportado no Q6 do notebook analitico.
+- Decisao: trilha unica de modelagem sem IPP — escolha metodologicamente solida, nao limitacao.
 
 ## 3. Estrutura da Solucao
 

@@ -72,9 +72,9 @@ Nota para Q9:
 - Separação treino/teste temporal:
 	- treino: base 2022 (prevendo 2023)
 	- teste: base 2023 (prevendo 2024)
-- Duas trilhas de modelagem no desenho temporal:
-	- Trilha 1: sem IPP (maior cobertura)
-	- Trilha 2: com IPP (maior riqueza psicopedagógica, quando houver amostra suficiente)
+- Trilha única de modelagem: sem IPP.
+	- Decisão metodológica: o IPP foi introduzido no PEDE2023 e é estruturalmente ausente na base de treino (2022), tornando inviável qualquer trilha dependente de IPP com governança temporal — qualquer imputação de IPP em 2022 constituiria leakage conceitual.
+	- Achado analítico: correlação IPP × target de risco = −0,12 (sinal fraco), e diferença de INDE médio entre grupos de risco = 0,23 pontos numa escala de 0–10; o IPP aparenta medir engajamento com o programa, não defasagem acadêmica diretamente. Esse achado é reportado na análise do Q6.
 - Comparação de modelos (Regressão Logística, Random Forest, Gradient Boosting)
 - Métricas de avaliação (Precisão, Recall, F1, ROC-AUC, PR-AUC, calibração)
 - Critério de escolha: maior `recall`, com `roc_auc` como desempate

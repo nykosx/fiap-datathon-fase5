@@ -28,6 +28,10 @@ Entregar uma solucao completa do Datathon com:
 - Apresentacao final (PPT/PDF).
 - Video final (ate 5 minutos).
 
+Guias de apoio para acelerar essa etapa:
+- docs/APRESENTACAO_GUIA.md
+- docs/VIDEO_GUIA.md
+
 ## Fonte de Verdade
 
 ### Base oficial
@@ -45,6 +49,9 @@ Entregar uma solucao completa do Datathon com:
 Observacao de governanca:
 - o Q9 no notebook analitico funciona como baseline de triagem e leitura executiva;
 - os numeros oficiais de modelagem para banca e app devem vir do nb04 e dos arquivos em outputs/.
+- Q5 e Q7 medem associacao contemporanea, nao temporal; a critica de "antecedem" e "ao longo do tempo" esta documentada nas celulas de cada questao.
+- Q8 cobre apenas os anos com IPP disponivel (IPP ausente em 2022); ver nota na celula de Q8.
+- Q9 usa alvo de estado atual (ian < 10); previsao do ciclo seguinte esta no nb04. Ver nota na celula de Q9.
 
 ## Decisoes Metodologicas que Devem Ser Preservadas
 
@@ -53,7 +60,7 @@ Observacao de governanca:
    - teste: ano base 2023 para prever 2024.
 2. O alvo e target_risco_next, definido por `ian_next_year <= 5` no ano seguinte.
 3. O criterio de selecao do modelo prioriza cobertura de risco detectado (recall), com roc_auc como desempate.
-4. IPP nao deve ser imputado em 2022 como abordagem principal.
+4. Trilha unica de modelagem sem IPP. O IPP foi introduzido no PEDE2023 e e estruturalmente ausente na base de treino (2022) — nao e um dado faltante aleatorio, e uma coluna que ainda nao existia. Imputar IPP em 2022 constituiria leakage conceitual. Analise adicional (Q6) mostra correlacao do IPP com risco de apenas -0,12, indicando que o indicador mede engajamento com o programa, nao defasagem academica diretamente. Esse achado deve constar na apresentacao.
 
 ## Continuacao Recomendada
 

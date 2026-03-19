@@ -15,6 +15,8 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.config import METADATA_PATH, MODEL_PATH, OFFICIAL_DATA_PATH
 from src.utils import canonicalize_phase, parse_risk_threshold_from_target, prepare_scoring_frame
 
+CAPACITY_PATH = PROJECT_ROOT / "outputs" / "modelagem_tradeoff_capacidade.csv"
+
 st.set_page_config(
     page_title="Risco de Defasagem - Passos Magicos",
     page_icon="🎓",
@@ -94,15 +96,101 @@ def build_recommendations(prob: float, inputs: dict, ian_threshold: float = 5.0)
     return recs
 
 
+def build_driver_summary(inputs: dict) -> list[str]:
+    """Gera explicacao local simples baseada em indicadores informados."""
+    drivers = []
+    indicator_labels = {
+        "ian": "IAN",
+        "ida": "IDA",
+        "ieg": "IEG",
+        "iaa": "IAA",
+        "ips": "IPS",
+        "ipv": "IPV",
+    }
+
+    gaps = []
+    for key, label in indicator_labels.items():
+        val = float(inputs.get(key, 10.0) or 10.0)
+        gaps.append((label, val, 10.0 - val))
+
+    for label, val, gap in sorted(gaps, key=lambda x: x[2], reverse=True)[:3]:
+        if val < 6.0:
+            drivers.append(f"{label} baixo ({val:.1f}) sugere maior vulnerabilidade no proximo ciclo.")
+
+    if not drivers:
+        drivers.append("Indicadores principais estao em faixa estavel; risco depende mais da combinacao global dos sinais.")
+    return drivers
+
+
+def batch_action_from_prob(prob: float) -> str:
+    if prob >= 0.75:
+        return "Intervencao imediata (72h)"
+    if prob >= 0.55:
+        return "Plano pedagogico em ate 2 semanas"
+    if prob >= 0.35:
+        return "Monitoramento quinzenal"
+    return "Acompanhamento regular"
+
+
+def validate_batch_input(input_df: pd.DataFrame, expected_features: list[str]) -> tuple[pd.DataFrame, dict]:
+    report = {
+        "missing_columns": [],
+        "null_rates": {},
+        "unknown_categories": {},
+        "warnings": [],
+    }
+
+    missing_columns = [c for c in expected_features if c not in input_df.columns]
+    report["missing_columns"] = missing_columns
+
+    numeric_candidates = [c for c in ["age", "ian", "ida", "ieg", "iaa", "ips", "ipv", "ipp"] if c in input_df.columns]
+    categorical_expected = {
+        "gender": {"Feminino", "Masculino"},
+        "school_institution": {"Escola Pública", "Escola Publica", "Rede Decisão", "Rede Decisao", "Escola Privada", "Outros"},
+        "fase_padronizada": {"Alfa", "Fase 1", "Fase 2", "Fase 3", "Fase 4", "Fase 5", "Fase 6", "Fase 7", "Fase 8"},
+    }
+
+    for col in input_df.columns:
+        report["null_rates"][col] = float(input_df[col].isna().mean())
+
+    for col in numeric_candidates:
+        converted = pd.to_numeric(input_df[col], errors="coerce")
+        if converted.isna().mean() > input_df[col].isna().mean():
+            report["warnings"].append(f"Coluna {col}: valores nao numericos foram detectados e serao imputados no pipeline.")
+
+    for col, allowed in categorical_expected.items():
+        if col in input_df.columns:
+            observed = set(input_df[col].dropna().astype(str).str.strip().unique().tolist())
+            unknown = sorted([v for v in observed if v not in allowed])
+            if unknown:
+                report["unknown_categories"][col] = unknown[:20]
+
+    if missing_columns:
+        report["warnings"].append("Ha colunas ausentes em relacao ao esperado pelo modelo.")
+
+    high_null = [c for c, r in report["null_rates"].items() if r >= 0.5]
+    if high_null:
+        report["warnings"].append("Algumas colunas possuem >= 50% de nulos e podem reduzir confiabilidade do score.")
+
+    return input_df, report
+
+
+def load_capacity_presets() -> pd.DataFrame | None:
+    if not CAPACITY_PATH.exists():
+        return None
+    try:
+        df = pd.read_csv(CAPACITY_PATH)
+    except Exception:
+        return None
+    required = {"capacidade_max_alertas", "ponto_de_corte_sugerido", "cobertura_risco_detectado", "taxa_de_acerto_dos_alertas"}
+    if not required.issubset(df.columns):
+        return None
+    return df
+
+
 def resolve_expected_features(metadata: dict | None) -> tuple[str, list[str]]:
     winner_track = metadata.get("winner_track", "trilha_temporal_sem_ipp") if metadata else "trilha_temporal_sem_ipp"
-    expected_features = []
-    if metadata:
-        if winner_track in {"trilha2_com_ipp", "trilha_core_com_ipp", "trilha_temporal_com_ipp"}:
-            track_key = "track2"
-        else:
-            track_key = "track1"
-        expected_features = (metadata.get(track_key) or {}).get("features", [])
+    expected_features = (metadata.get("track1") or {}).get("features", []) if metadata else []
     return winner_track, expected_features
 
 
@@ -137,7 +225,7 @@ def render_individual_tab(model, metadata: dict | None, expected_features: list[
         )
 
     with st.form("form_aluno"):
-        col_a, col_b, col_c = st.columns(3)
+        col_a, col_b = st.columns(2)
 
         with col_a:
             st.markdown("**Dados cadastrais**")
@@ -164,14 +252,6 @@ def render_individual_tab(model, metadata: dict | None, expected_features: list[
             ipv = st.slider("IPV", 0.0, 10.0, 5.0, 0.1)
             ipp = st.slider("IPP", 0.0, 10.0, 5.0, 0.1) if has_ipp else None
 
-        with col_c:
-            st.markdown("**Desempenho escolar**")
-            math = st.slider("Matematica", 0.0, 10.0, 5.0, 0.1)
-            portuguese = st.slider("Portugues", 0.0, 10.0, 5.0, 0.1)
-            english = st.slider("Ingles", 0.0, 10.0, 5.0, 0.1)
-            achieved_turning_point = st.selectbox("Atingiu ponto de virada?", ["Nao", "Sim"])
-            indicated_for_intervention = st.selectbox("Ja indicado para intervencao?", ["Nao", "Sim"])
-
         submitted = st.form_submit_button("Calcular risco", use_container_width=True)
 
     if not submitted:
@@ -192,9 +272,6 @@ def render_individual_tab(model, metadata: dict | None, expected_features: list[
         "iaa": iaa,
         "ips": ips,
         "ipv": ipv,
-        "math": math,
-        "portuguese": portuguese,
-        "english": english,
     }
 
     if "year" in expected_features:
@@ -209,10 +286,6 @@ def render_individual_tab(model, metadata: dict | None, expected_features: list[
         input_dict["gender"] = gender
     if "school_institution" in expected_features:
         input_dict["school_institution"] = school_map.get(school_institution, school_institution)
-    if "achieved_turning_point" in expected_features:
-        input_dict["achieved_turning_point"] = sim_nao_map.get(achieved_turning_point, achieved_turning_point)
-    if "indicated_for_intervention" in expected_features:
-        input_dict["indicated_for_intervention"] = sim_nao_map.get(indicated_for_intervention, indicated_for_intervention)
     if has_ipp and ipp is not None:
         input_dict["ipp"] = ipp
 
@@ -279,13 +352,13 @@ def render_individual_tab(model, metadata: dict | None, expected_features: list[
         "iaa": iaa,
         "ips": ips,
         "ipv": ipv,
-        "math": math,
-        "portuguese": portuguese,
-        "english": english,
-        "achieved_turning_point": achieved_turning_point,
-        "indicated_for_intervention": indicated_for_intervention,
     }
 
+    st.markdown("**Fatores que mais pesaram no score (explicacao local simplificada)**")
+    for driver in build_driver_summary(form_inputs):
+        st.markdown(f"- {driver}")
+
+    st.markdown("**Acoes sugeridas**")
     for rec in build_recommendations(prob, form_inputs, ian_threshold=ian_threshold):
         st.markdown(f"- {rec}")
 
@@ -294,17 +367,62 @@ def render_batch_tab(model, metadata: dict | None, expected_features: list[str])
     st.subheader("Predicao em massa (CSV)")
     st.markdown("Envie um CSV para gerar probabilidades de risco e ranking de priorizacao em lote.")
 
+    # Template simples para a equipe preencher com as colunas minimas esperadas.
+    template_defaults = {
+        "year": "PEDE2024",
+        "fase_padronizada": "Fase 4",
+        "age": 13,
+        "ida": 6.0,
+        "ieg": 6.0,
+        "iaa": 6.0,
+        "ips": 6.0,
+        "ipv": 6.0,
+        "gender": "Feminino",
+        "school_institution": "Escola Pública",
+        "phase": "Fase 4",
+        "ipp": 6.0,
+    }
+    template_row = {col: template_defaults.get(col, "") for col in expected_features}
+    template_df = pd.DataFrame([template_row])
+    st.download_button(
+        label="Baixar CSV modelo",
+        data=template_df.to_csv(index=False).encode("utf-8"),
+        file_name="modelo_entrada_scoring.csv",
+        mime="text/csv",
+        help="Use este arquivo como guia de preenchimento para o scoring em lote.",
+    )
+
     with st.expander("Colunas esperadas no CSV", expanded=False):
         st.code(", ".join(expected_features), language="text")
 
-    score_threshold = st.slider(
-        "Ponto de corte de alerta",
-        min_value=0.10,
-        max_value=0.90,
-        value=0.50,
-        step=0.05,
-        help="Valores menores aumentam cobertura, mas tambem aumentam alertas falsos.",
+    capacity_df = load_capacity_presets()
+    mode = st.radio(
+        "Modo de definicao do ponto de corte",
+        options=["Manual", "Por capacidade operacional"],
+        horizontal=True,
     )
+
+    if mode == "Manual" or capacity_df is None:
+        score_threshold = st.slider(
+            "Ponto de corte de alerta",
+            min_value=0.10,
+            max_value=0.90,
+            value=0.50,
+            step=0.05,
+            help="Valores menores aumentam cobertura, mas tambem aumentam alertas falsos.",
+        )
+        if mode == "Por capacidade operacional" and capacity_df is None:
+            st.warning("Tabela de capacidade nao encontrada. Usando modo manual.")
+    else:
+        options = capacity_df["capacidade_max_alertas"].astype(int).tolist()
+        selected_cap = st.selectbox("Capacidade maxima de alertas", options=options, index=min(1, len(options) - 1))
+        selected = capacity_df[capacity_df["capacidade_max_alertas"].astype(int) == int(selected_cap)].iloc[0]
+        score_threshold = float(selected["ponto_de_corte_sugerido"])
+        st.info(
+            f"Corte sugerido: {score_threshold:.2f} | "
+            f"Cobertura: {float(selected['cobertura_risco_detectado']):.1%} | "
+            f"Acerto dos alertas: {float(selected['taxa_de_acerto_dos_alertas']):.1%}"
+        )
 
     uploaded = st.file_uploader("Envie um CSV com dados de alunos", type=["csv"])
     use_official_2024 = st.checkbox(
@@ -340,6 +458,24 @@ def render_batch_tab(model, metadata: dict | None, expected_features: list[str])
     st.caption(f"Fonte utilizada: {source_label}")
     st.dataframe(input_df.head(10), use_container_width=True)
 
+    _, quality_report = validate_batch_input(input_df, expected_features)
+    with st.expander("Relatorio de qualidade da entrada", expanded=True):
+        if quality_report["missing_columns"]:
+            st.error(f"Colunas ausentes: {', '.join(quality_report['missing_columns'])}")
+        else:
+            st.success("Colunas esperadas presentes.")
+
+        high_null_cols = [f"{c} ({r:.0%})" for c, r in quality_report["null_rates"].items() if r >= 0.5]
+        if high_null_cols:
+            st.warning("Colunas com alta taxa de nulos: " + ", ".join(high_null_cols))
+
+        if quality_report["unknown_categories"]:
+            for col, vals in quality_report["unknown_categories"].items():
+                st.warning(f"Categorias nao mapeadas em {col}: {', '.join(vals)}")
+
+        for w in quality_report["warnings"]:
+            st.caption(f"- {w}")
+
     scored = prepare_scoring_frame(input_df, expected_features)
     probs = model.predict_proba(scored)[:, 1]
     preds = (probs >= score_threshold).astype(int)
@@ -348,6 +484,7 @@ def render_batch_tab(model, metadata: dict | None, expected_features: list[str])
     result["prob_risco"] = probs
     result["classe_risco"] = preds
     result["prioridade"] = pd.qcut(result["prob_risco"], q=4, labels=["baixa", "media", "alta", "critica"], duplicates="drop")
+    result["acao_sugerida"] = result["prob_risco"].apply(batch_action_from_prob)
     result = result.sort_values("prob_risco", ascending=False).reset_index(drop=True)
 
     c1, c2, c3, c4 = st.columns(4)

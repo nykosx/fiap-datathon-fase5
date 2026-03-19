@@ -16,6 +16,8 @@ Use estes arquivos como referencia principal:
 - docs/PROJECT_GUIDE.md: status, continuidade, entregaveis e fonte de verdade operacional;
 - docs/methodology.md: desenho metodologico e criterios tecnicos;
 - docs/STORYTELLING_BASE.md: narrativa completa para PPT/PDF e video.
+- docs/APRESENTACAO_GUIA.md: roteiro curto, slide a slide, com graficos principais do nb03;
+- docs/VIDEO_GUIA.md: roteiro de fala objetivo para video de ate 5 minutos.
 
 ## Estrutura do Projeto
 
